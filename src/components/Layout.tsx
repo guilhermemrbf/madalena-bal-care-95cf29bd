@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from 'react';
-import { LayoutDashboard, Package, CreditCard, ClipboardList, Activity } from 'lucide-react';
+import { LayoutDashboard, Package, CreditCard, ClipboardList, Activity, Users, LogOut } from 'lucide-react';
 import PharmacyLogo from './PharmacyLogo';
 import ConnectionStatus, { ConnectionBadge } from './ConnectionStatus';
 
@@ -10,17 +10,14 @@ interface LayoutProps {
   pageTitle: string;
   pageSub: string;
   criticalCount: number;
+  userName?: string;
+  userInitials?: string;
+  userCargo?: string;
+  isAdmin?: boolean;
+  onLogout?: () => void;
 }
 
-const navItems = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'Menu Principal' },
-  { key: 'produtos', label: 'Produtos / Estoque', icon: Package, section: null },
-  { key: 'caixa', label: 'Caixa — PDV', icon: CreditCard, section: null },
-  { key: 'vendas', label: 'Histórico de Vendas', icon: ClipboardList, section: 'Relatórios' },
-  { key: 'relatorio', label: 'Relatório do Dia', icon: Activity, section: null },
-];
-
-export default function Layout({ children, currentPage, onNavigate, pageTitle, pageSub, criticalCount }: LayoutProps) {
+export default function Layout({ children, currentPage, onNavigate, pageTitle, pageSub, criticalCount, userName, userInitials, userCargo, isAdmin, onLogout }: LayoutProps) {
   const [clock, setClock] = useState('');
 
   useEffect(() => {
@@ -33,9 +30,17 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
     return () => clearInterval(id);
   }, []);
 
+  const navItems = [
+    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'Menu Principal', adminOnly: false },
+    { key: 'produtos', label: 'Produtos / Estoque', icon: Package, section: null, adminOnly: true },
+    { key: 'caixa', label: 'Caixa — PDV', icon: CreditCard, section: null, adminOnly: false },
+    { key: 'vendas', label: 'Histórico de Vendas', icon: ClipboardList, section: 'Relatórios', adminOnly: false },
+    { key: 'relatorio', label: 'Relatório do Dia', icon: Activity, section: null, adminOnly: true },
+    ...(isAdmin ? [{ key: 'usuarios', label: 'Funcionários', icon: Users, section: 'Administração', adminOnly: true }] : []),
+  ];
+
   return (
     <div className="flex min-h-screen">
-      {/* Connection status banner */}
       <ConnectionStatus />
 
       {/* Sidebar */}
@@ -83,7 +88,25 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
           ))}
         </nav>
 
-        <div className="px-5 py-4 border-t border-white/10 text-[11px] text-white/40 text-center">
+        {/* User card at bottom */}
+        <div className="px-3.5 pb-3">
+          <div className="bg-white/[0.08] rounded-xl px-3 py-3 flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-xs text-white shrink-0" style={{ background: 'linear-gradient(135deg, #6aaa2a, #1a6b3c)' }}>
+              {userInitials || 'MB'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-white text-[13px] font-bold truncate">{userName || 'Usuário'}</div>
+              <div className="text-white/50 text-[10px] font-semibold">{userCargo || 'Funcionário'}</div>
+            </div>
+            {onLogout && (
+              <button onClick={onLogout} className="text-white/40 hover:text-white transition-colors p-1" title="Sair">
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="px-5 py-3 border-t border-white/10 text-[11px] text-white/40 text-center">
           © 2026 Madalena Bal Farmácia
         </div>
       </aside>
@@ -97,12 +120,15 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
           </div>
           <div className="flex items-center gap-3">
             <ConnectionBadge />
+            {isAdmin && (
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[hsl(148,40%,93%)] text-primary border border-border">ADMIN</span>
+            )}
             <div className="text-xs text-muted-foreground bg-background border border-border rounded-full px-3.5 py-1.5">
               {clock}
             </div>
             <div className="flex items-center gap-2 bg-accent-light border border-border rounded-full py-[7px] px-3.5 pr-4 text-[13px] font-bold text-primary">
-              <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white text-xs font-extrabold">MB</div>
-              Proprietário
+              <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white text-xs font-extrabold">{userInitials || 'MB'}</div>
+              {userCargo || 'Funcionário'}
             </div>
           </div>
         </div>
