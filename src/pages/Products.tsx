@@ -20,6 +20,7 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [barcodeProduct, setBarcodeProduct] = useState<Product | null>(null);
   const { showToast } = useToastCustom();
 
   const filtered = produtos.filter(p =>
