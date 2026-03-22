@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Search, Plus, Check, Package } from 'lucide-react';
+import { Search, Plus, Check, Package, ScanLine } from 'lucide-react';
 import { Product, fmt, categories } from '@/store/useStore';
 import { useToastCustom } from '@/components/Toast';
 import Modal from '@/components/Modal';
+import Barcode from 'react-barcode';
 
 interface Props {
   produtos: Product[];
@@ -19,6 +20,7 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [barcodeProduct, setBarcodeProduct] = useState<Product | null>(null);
   const { showToast } = useToastCustom();
 
   const filtered = produtos.filter(p =>
@@ -88,14 +90,14 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
         <table className="w-full">
           <thead className="bg-[#f8fbf9]">
             <tr>
-              {['Código', 'Produto', 'Categoria', 'Estoque', 'Mín.', 'Preço', 'Status', 'Ações'].map(h => (
+              {['Código', 'Produto', 'Categoria', 'Estoque', 'Mín.', 'Preço', 'Status', 'Barras', 'Ações'].map(h => (
                 <th key={h} className="px-4 py-[11px] text-left text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={8} className="text-center py-16 text-muted-foreground font-semibold">Nenhum produto encontrado</td></tr>
+              <tr><td colSpan={9} className="text-center py-16 text-muted-foreground font-semibold">Nenhum produto encontrado</td></tr>
             ) : filtered.map(p => {
               const pct = Math.min(100, Math.round((p.est / Math.max(p.min * 3, 1)) * 100));
               const barColor = p.est <= 0 ? 'bg-destructive' : p.est <= p.min ? 'bg-[#f0a030]' : 'bg-accent';
@@ -118,6 +120,11 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
                     {p.est <= 0 ? <span className="px-2.5 py-0.5 rounded-full text-[11.5px] font-bold bg-destructive-light text-destructive">Sem Estoque</span>
                       : p.est <= p.min ? <span className="px-2.5 py-0.5 rounded-full text-[11.5px] font-bold bg-[#fff8e6] text-[#8a6400]">⚠️ Crítico</span>
                       : <span className="px-2.5 py-0.5 rounded-full text-[11.5px] font-bold bg-[hsl(148,40%,93%)] text-primary">✓ Ok</span>}
+                  </td>
+                  <td className="px-4 py-[13px]">
+                    <button onClick={() => setBarcodeProduct(p)} className="bg-background text-text-2 border border-border rounded-lg px-2.5 py-[5px] text-xs font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors flex items-center gap-1">
+                      <ScanLine className="w-3.5 h-3.5" /> Ver
+                    </button>
                   </td>
                   <td className="px-4 py-[13px]">
                     <div className="flex gap-1.5">
@@ -161,6 +168,19 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
             <Check className="w-4 h-4" /> Salvar Produto
           </button>
         </div>
+      </Modal>
+
+      <Modal open={!!barcodeProduct} onClose={() => setBarcodeProduct(null)} width="w-[380px]">
+        {barcodeProduct && (
+          <div className="text-center">
+            <h3 className="font-display text-lg text-primary mb-1">{barcodeProduct.nome.split('—')[0].trim()}</h3>
+            <p className="text-xs text-muted-foreground mb-4">{barcodeProduct.cod}</p>
+            <div className="flex justify-center mb-4">
+              <Barcode value={barcodeProduct.cod} format="CODE128" width={2} height={80} fontSize={14} background="#ffffff" lineColor="#0f2118" />
+            </div>
+            <p className="text-xs text-muted-foreground font-semibold">Imprima este código para etiquetar o produto</p>
+          </div>
+        )}
       </Modal>
     </div>
   );
