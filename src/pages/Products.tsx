@@ -122,6 +122,11 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
                       : <span className="px-2.5 py-0.5 rounded-full text-[11.5px] font-bold bg-[hsl(148,40%,93%)] text-primary">✓ Ok</span>}
                   </td>
                   <td className="px-4 py-[13px]">
+                    <button onClick={() => setBarcodeProduct(p)} className="bg-background text-text-2 border border-border rounded-lg px-2.5 py-[5px] text-xs font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors flex items-center gap-1">
+                      <ScanLine className="w-3.5 h-3.5" /> Ver
+                    </button>
+                  </td>
+                  <td className="px-4 py-[13px]">
                     <div className="flex gap-1.5">
                       <button onClick={() => openEdit(p)} className="bg-background text-text-2 border border-border rounded-lg px-3 py-[7px] text-xs font-bold hover:bg-border transition-colors">✏️ Editar</button>
                       <button onClick={() => del(p.id)} className="bg-destructive-light text-destructive rounded-lg px-3 py-[7px] text-xs font-bold hover:bg-[#f9d9d7] transition-colors">🗑</button>
