@@ -90,7 +90,7 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
         <table className="w-full">
           <thead className="bg-[#f8fbf9]">
             <tr>
-              {['Código', 'Produto', 'Categoria', 'Estoque', 'Mín.', 'Preço', 'Status', 'Ações'].map(h => (
+              {['Código', 'Produto', 'Categoria', 'Estoque', 'Mín.', 'Preço', 'Status', 'Barras', 'Ações'].map(h => (
                 <th key={h} className="px-4 py-[11px] text-left text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">{h}</th>
               ))}
             </tr>
