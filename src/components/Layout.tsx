@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { LayoutDashboard, Package, CreditCard, ClipboardList, Activity } from 'lucide-react';
 import PharmacyLogo from './PharmacyLogo';
+import ConnectionStatus, { ConnectionBadge } from './ConnectionStatus';
 
 interface LayoutProps {
   children: ReactNode;
@@ -34,6 +35,9 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
 
   return (
     <div className="flex min-h-screen">
+      {/* Connection status banner */}
+      <ConnectionStatus />
+
       {/* Sidebar */}
       <aside className="w-[260px] fixed h-screen flex flex-col z-20" style={{ background: 'linear-gradient(180deg, #0f3d22 0%, #1a6b3c 50%, #1e7a43 100%)' }}>
         <div className="px-6 pt-7 pb-5 border-b border-white/[0.12]">
@@ -91,7 +95,8 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
             <h2 className="font-display text-[22px] text-primary">{pageTitle}</h2>
             <p className="text-[13px] text-muted-foreground mt-0.5">{pageSub}</p>
           </div>
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3">
+            <ConnectionBadge />
             <div className="text-xs text-muted-foreground bg-background border border-border rounded-full px-3.5 py-1.5">
               {clock}
             </div>
