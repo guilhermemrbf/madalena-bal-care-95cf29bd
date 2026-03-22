@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Search, Plus, Check, Package } from 'lucide-react';
+import { Search, Plus, Check, Package, ScanLine } from 'lucide-react';
 import { Product, fmt, categories } from '@/store/useStore';
 import { useToastCustom } from '@/components/Toast';
 import Modal from '@/components/Modal';
+import Barcode from 'react-barcode';
 
 interface Props {
   produtos: Product[];
