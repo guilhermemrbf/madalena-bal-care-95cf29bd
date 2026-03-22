@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { Plus, Minus, X, ShoppingBag, CreditCard, Check } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Plus, Minus, X, ShoppingBag, CreditCard, Check, Camera, ScanLine } from 'lucide-react';
 import { Product, CartItem, Sale, fmt } from '@/store/useStore';
 import { useToastCustom } from '@/components/Toast';
 import Modal from '@/components/Modal';
+import BarcodeScanner from '@/components/BarcodeScanner';
+import Barcode from 'react-barcode';
 
 interface Props {
   produtos: Product[];
@@ -19,13 +21,18 @@ export default function POS({ produtos, onSale }: Props) {
   const [pgtoSel, setPgtoSel] = useState<string | null>(null);
   const [recebido, setRecebido] = useState('');
   const [lastSale, setLastSale] = useState<Sale | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [barcodeModalProduct, setBarcodeModalProduct] = useState<Product | null>(null);
   const { showToast } = useToastCustom();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const lastKeyTime = useRef(0);
+  const barcodeBuffer = useRef('');
 
   const available = produtos.filter(p => p.est > 0 && (p.nome.toLowerCase().includes(search.toLowerCase()) || p.cod.toLowerCase().includes(search.toLowerCase())));
   const total = cart.reduce((a, i) => a + i.preco * i.qty, 0);
   const totalItens = cart.reduce((a, i) => a + i.qty, 0);
 
-  const addToCart = (p: Product) => {
+  const addToCart = useCallback((p: Product) => {
     setCart(prev => {
       const ex = prev.find(i => i.id === p.id);
       if (ex) {
@@ -35,7 +42,60 @@ export default function POS({ produtos, onSale }: Props) {
       return [...prev, { id: p.id, cod: p.cod, nome: p.nome, preco: p.preco, qty: 1 }];
     });
     showToast(`+ ${p.nome.split('—')[0].trim()}`, 'success');
+  }, [showToast]);
+
+  const findAndAddByCode = useCallback((code: string) => {
+    const normalized = code.trim().toUpperCase();
+    const product = produtos.find(p => p.cod.toUpperCase() === normalized);
+    if (product) {
+      if (product.est <= 0) {
+        showToast(`${product.nome.split('—')[0].trim()} — sem estoque!`, 'error');
+        return;
+      }
+      addToCart(product);
+      setSearch('');
+    } else {
+      showToast(`Produto não encontrado: ${code}`, 'error');
+    }
+  }, [produtos, addToCart, showToast]);
+
+  // Detect barcode scanner input (rapid keystrokes ending with Enter)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const now = Date.now();
+      // Ignore if typing in other inputs (modals etc)
+      if (pgtoOpen || reciboOpen || scannerOpen) return;
+      
+      if (e.key === 'Enter' && barcodeBuffer.current.length >= 3) {
+        e.preventDefault();
+        findAndAddByCode(barcodeBuffer.current);
+        barcodeBuffer.current = '';
+        return;
+      }
+
+      if (now - lastKeyTime.current > 100) {
+        barcodeBuffer.current = '';
+      }
+
+      if (e.key.length === 1) {
+        barcodeBuffer.current += e.key;
+        lastKeyTime.current = now;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [findAndAddByCode, pgtoOpen, reciboOpen, scannerOpen]);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && search.trim()) {
+      findAndAddByCode(search);
+    }
   };
+
+  const handleScan = useCallback((code: string) => {
+    findAndAddByCode(code);
+  }, [findAndAddByCode]);
 
   const changeQty = (id: number, d: number) => {
     setCart(prev => {
@@ -68,28 +128,61 @@ export default function POS({ produtos, onSale }: Props) {
     <div className="grid grid-cols-[1fr_380px] gap-[22px]" style={{ height: 'calc(100vh - 200px)' }}>
       {/* Left - Product Grid */}
       <div className="flex flex-col gap-3.5 overflow-hidden">
-        <input
-          value={search} onChange={e => setSearch(e.target.value)}
-          className="w-full py-[13px] px-[18px] border-2 border-border rounded-xl font-body text-[15px] outline-none bg-card focus:border-primary focus:shadow-[0_0_0_4px_rgba(26,107,60,0.08)] transition-all"
-          placeholder="🔍  Digite o nome ou código do produto..."
-        />
+        <div className="flex gap-2.5">
+          <input
+            ref={searchRef}
+            value={search} onChange={e => setSearch(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            className="flex-1 py-[13px] px-[18px] border-2 border-border rounded-xl font-body text-[15px] outline-none bg-card focus:border-primary focus:shadow-[0_0_0_4px_rgba(26,107,60,0.08)] transition-all"
+            placeholder="🔍  Digite o nome, código ou use o leitor de barras..."
+          />
+          <button
+            onClick={() => setScannerOpen(true)}
+            className="flex items-center gap-2 px-4 py-[13px] bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:bg-primary-dark hover:shadow-[0_4px_12px_rgba(26,107,60,0.35)] transition-all shrink-0"
+            title="Abrir leitor de código de barras"
+          >
+            <Camera className="w-5 h-5" />
+            <span className="hidden xl:inline">Escanear</span>
+          </button>
+        </div>
+
+        {/* Barcode scanner mode hint */}
+        <div className="flex items-center gap-2 px-3 py-2 bg-accent-light rounded-lg text-xs font-semibold text-accent">
+          <ScanLine className="w-4 h-4 shrink-0" />
+          <span>Leitor USB/Bluetooth ativo — escaneie um código de barras ou pressione Enter após digitar o código</span>
+        </div>
+
         <div className="grid grid-cols-3 gap-3 overflow-y-auto pb-2" style={{ alignContent: 'start' }}>
           {available.length === 0 ? (
             <div className="col-span-3 text-center py-16 text-muted-foreground font-bold text-[15px]">Nenhum produto disponível</div>
           ) : available.map(p => (
             <div
-              key={p.id} onClick={() => addToCart(p)}
+              key={p.id}
               className="bg-card border-2 border-border rounded-[14px] p-4 cursor-pointer hover:border-primary hover:shadow-[0_6px_20px_rgba(26,107,60,0.15)] hover:-translate-y-[3px] active:-translate-y-px transition-all relative group"
             >
               <div className="inline-block text-[10px] font-extrabold uppercase tracking-wide text-accent bg-accent-light px-2 py-0.5 rounded-full mb-2">{p.cat}</div>
-              <div className="absolute top-3 right-3 w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                <Plus className="w-4 h-4" />
+              <div className="absolute top-3 right-3 flex gap-1">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setBarcodeModalProduct(p); }}
+                  className="w-7 h-7 bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground"
+                  title="Ver código de barras"
+                >
+                  <ScanLine className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); addToCart(p); }}
+                  className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
               </div>
-              <div className="font-bold text-[13.5px] leading-tight mb-1">{p.nome}</div>
-              <div className="text-[11px] text-muted-foreground mb-2.5">{p.cod}</div>
-              <div className="font-display text-primary text-lg font-bold">{fmt(p.preco)}</div>
-              <div className={`text-[11px] mt-0.5 ${p.est <= p.min ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>
-                Estoque: {p.est} un.{p.est <= p.min && ' ⚠️'}
+              <div onClick={() => addToCart(p)}>
+                <div className="font-bold text-[13.5px] leading-tight mb-1">{p.nome}</div>
+                <div className="text-[11px] text-muted-foreground mb-2.5">{p.cod}</div>
+                <div className="font-display text-primary text-lg font-bold">{fmt(p.preco)}</div>
+                <div className={`text-[11px] mt-0.5 ${p.est <= p.min ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>
+                  Estoque: {p.est} un.{p.est <= p.min && ' ⚠️'}
+                </div>
               </div>
             </div>
           ))}
@@ -114,7 +207,7 @@ export default function POS({ produtos, onSale }: Props) {
             <div className="py-[50px] px-5 text-center text-muted-foreground">
               <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-25" />
               <p className="font-semibold text-sm">Carrinho vazio</p>
-              <span className="text-xs mt-1 block">Selecione produtos ao lado</span>
+              <span className="text-xs mt-1 block">Selecione produtos ou escaneie um código</span>
             </div>
           ) : cart.map(it => (
             <div key={it.id} className="px-[18px] py-[13px] border-b border-border flex items-center gap-2.5">
@@ -241,6 +334,25 @@ export default function POS({ produtos, onSale }: Props) {
           </button>
         </div>
       </Modal>
+
+      {/* Barcode View Modal */}
+      <Modal open={!!barcodeModalProduct} onClose={() => setBarcodeModalProduct(null)} width="w-[380px]">
+        {barcodeModalProduct && (
+          <div className="text-center">
+            <h3 className="font-display text-lg text-primary mb-1">{barcodeModalProduct.nome.split('—')[0].trim()}</h3>
+            <p className="text-xs text-muted-foreground mb-4">{barcodeModalProduct.cod}</p>
+            <div className="flex justify-center mb-4">
+              <Barcode value={barcodeModalProduct.cod} format="CODE128" width={2} height={80} fontSize={14} background="#ffffff" lineColor="#0f2118" />
+            </div>
+            <p className="text-xs text-muted-foreground font-semibold">Código de barras do produto</p>
+          </div>
+        )}
+      </Modal>
+
+      {/* Camera Scanner */}
+      {scannerOpen && (
+        <BarcodeScanner onScan={handleScan} onClose={() => setScannerOpen(false)} />
+      )}
     </div>
   );
 }
