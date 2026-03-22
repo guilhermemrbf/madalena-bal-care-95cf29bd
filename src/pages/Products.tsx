@@ -1,26 +1,34 @@
 import { useState } from 'react';
-import { Search, Plus, Check, Package, ScanLine } from 'lucide-react';
-import { Product, fmt, categories } from '@/store/useStore';
+import { Search, Plus, Check, Package, ScanLine, ArrowDownToLine } from 'lucide-react';
+import { Product, Fornecedor, fmt, categories } from '@/store/useStore';
 import { useToastCustom } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import Barcode from 'react-barcode';
 
 interface Props {
   produtos: Product[];
+  fornecedores: Fornecedor[];
   onAdd: (p: Omit<Product, 'id'>) => void;
   onUpdate: (id: number, data: Partial<Product>) => void;
   onDelete: (id: number) => void;
+  onEntradaEstoque: (entry: {
+    produtoId: number; fornecedorNome: string; quantidade: number; lote: string;
+    validade: string; custoPorUnidade: number; notaFiscal?: string; dataRecebimento: string; observacoes?: string;
+  }) => void;
 }
 
 const emptyForm = { cod: '', nome: '', cat: 'Medicamentos', preco: '', custo: '', est: '', min: '10' };
+const emptyEntry = { produtoId: '', fornecedorNome: '', quantidade: '', lote: '', validade: '', custoPorUnidade: '', notaFiscal: '', dataRecebimento: new Date().toISOString().split('T')[0], observacoes: '' };
 
-export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props) {
+export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDelete, onEntradaEstoque }: Props) {
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [barcodeProduct, setBarcodeProduct] = useState<Product | null>(null);
+  const [entryOpen, setEntryOpen] = useState(false);
+  const [entry, setEntry] = useState(emptyEntry);
   const { showToast } = useToastCustom();
 
   const filtered = produtos.filter(p =>
@@ -60,6 +68,25 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
     showToast('Produto excluído.', 'info');
   };
 
+  const saveEntry = () => {
+    const produtoId = parseInt(entry.produtoId);
+    const quantidade = parseInt(entry.quantidade);
+    const custoPorUnidade = parseFloat(entry.custoPorUnidade);
+    if (!produtoId || isNaN(quantidade) || quantidade <= 0 || !entry.lote || !entry.validade || isNaN(custoPorUnidade)) {
+      showToast('Preencha todos os campos obrigatórios!', 'error');
+      return;
+    }
+    onEntradaEstoque({
+      produtoId, fornecedorNome: entry.fornecedorNome, quantidade,
+      lote: entry.lote, validade: entry.validade, custoPorUnidade,
+      notaFiscal: entry.notaFiscal || undefined, dataRecebimento: entry.dataRecebimento,
+      observacoes: entry.observacoes || undefined,
+    });
+    showToast('Estoque atualizado com sucesso!', 'success');
+    setEntryOpen(false);
+    setEntry(emptyEntry);
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -67,19 +94,18 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
         <div className="flex gap-2.5 items-center">
           <div className="relative">
             <Search className="absolute left-[11px] top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={search} onChange={e => setSearch(e.target.value)}
+            <input value={search} onChange={e => setSearch(e.target.value)}
               className="pl-9 pr-3.5 py-[9px] border-[1.5px] border-border rounded-[10px] font-body text-[13.5px] bg-background w-[250px] outline-none focus:border-primary focus:bg-card focus:shadow-[0_0_0_3px_rgba(26,107,60,0.08)] transition-all"
-              placeholder="Buscar produto..."
-            />
+              placeholder="Buscar produto..." />
           </div>
-          <select
-            value={catFilter} onChange={e => setCatFilter(e.target.value)}
-            className="py-[9px] px-3 border-[1.5px] border-border rounded-[10px] font-body text-[13.5px] bg-background outline-none"
-          >
+          <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+            className="py-[9px] px-3 border-[1.5px] border-border rounded-[10px] font-body text-[13.5px] bg-background outline-none">
             <option value="">Todas categorias</option>
             {categories.map(c => <option key={c}>{c}</option>)}
           </select>
+          <button onClick={() => { setEntry(emptyEntry); setEntryOpen(true); }} className="flex items-center gap-[7px] px-[18px] py-2.5 rounded-[10px] bg-accent text-white text-[13.5px] font-bold hover:opacity-90 transition-all">
+            <ArrowDownToLine className="w-4 h-4" /> Entrada de Estoque
+          </button>
           <button onClick={openNew} className="flex items-center gap-[7px] px-[18px] py-2.5 rounded-[10px] bg-primary text-primary-foreground text-[13.5px] font-bold hover:bg-primary-dark hover:shadow-[0_4px_12px_rgba(26,107,60,0.35)] transition-all">
             <Plus className="w-4 h-4" /> Novo Produto
           </button>
@@ -139,11 +165,10 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
         </table>
       </div>
 
+      {/* New/Edit Product Modal */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 bg-[hsl(148,40%,93%)] rounded-xl flex items-center justify-center text-primary">
-            <Package className="w-[22px] h-[22px]" />
-          </div>
+          <div className="w-11 h-11 bg-[hsl(148,40%,93%)] rounded-xl flex items-center justify-center text-primary"><Package className="w-[22px] h-[22px]" /></div>
           <div>
             <h3 className="font-display text-xl text-primary">{editId ? 'Editar Produto' : 'Novo Produto'}</h3>
             <p className="text-[13px] text-muted-foreground mt-0.5">Preencha os dados do produto</p>
@@ -170,6 +195,7 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
         </div>
       </Modal>
 
+      {/* Barcode Modal */}
       <Modal open={!!barcodeProduct} onClose={() => setBarcodeProduct(null)} width="w-[380px]">
         {barcodeProduct && (
           <div className="text-center">
@@ -181,6 +207,52 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
             <p className="text-xs text-muted-foreground font-semibold">Imprima este código para etiquetar o produto</p>
           </div>
         )}
+      </Modal>
+
+      {/* Stock Entry Modal */}
+      <Modal open={entryOpen} onClose={() => setEntryOpen(false)} width="w-[550px]">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-11 h-11 bg-accent-light rounded-xl flex items-center justify-center text-accent"><ArrowDownToLine className="w-[22px] h-[22px]" /></div>
+          <div>
+            <h3 className="font-display text-xl text-primary">Entrada de Estoque</h3>
+            <p className="text-[13px] text-muted-foreground mt-0.5">Registrar recebimento de mercadoria</p>
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block text-[11.5px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Produto</label>
+          <select value={entry.produtoId} onChange={e => setEntry({ ...entry, produtoId: e.target.value })}
+            className="w-full py-[11px] px-[13px] border-[1.5px] border-border rounded-[10px] font-body text-sm outline-none bg-background focus:border-primary transition-all">
+            <option value="">Selecione o produto...</option>
+            {produtos.map(p => <option key={p.id} value={p.id}>{p.cod} — {p.nome}</option>)}
+          </select>
+        </div>
+        <div className="mb-4">
+          <label className="block text-[11.5px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Fornecedor</label>
+          <select value={entry.fornecedorNome} onChange={e => setEntry({ ...entry, fornecedorNome: e.target.value })}
+            className="w-full py-[11px] px-[13px] border-[1.5px] border-border rounded-[10px] font-body text-sm outline-none bg-background focus:border-primary transition-all">
+            <option value="">Selecione o fornecedor...</option>
+            {fornecedores.map(f => <option key={f.id} value={f.nome}>{f.nome}</option>)}
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-3.5">
+          <Field label="Quantidade Recebida" value={entry.quantidade} onChange={v => setEntry({ ...entry, quantidade: v })} type="number" />
+          <Field label="Preço de Custo (R$)" value={entry.custoPorUnidade} onChange={v => setEntry({ ...entry, custoPorUnidade: v })} type="number" />
+        </div>
+        <div className="grid grid-cols-2 gap-3.5">
+          <Field label="Nº do Lote" value={entry.lote} onChange={v => setEntry({ ...entry, lote: v })} placeholder="Ex: L2025D" uppercase />
+          <Field label="Data de Validade" value={entry.validade} onChange={v => setEntry({ ...entry, validade: v })} type="date" />
+        </div>
+        <div className="grid grid-cols-2 gap-3.5">
+          <Field label="Nº Nota Fiscal (opcional)" value={entry.notaFiscal} onChange={v => setEntry({ ...entry, notaFiscal: v })} placeholder="NF" />
+          <Field label="Data de Recebimento" value={entry.dataRecebimento} onChange={v => setEntry({ ...entry, dataRecebimento: v })} type="date" />
+        </div>
+        <Field label="Observações" value={entry.observacoes} onChange={v => setEntry({ ...entry, observacoes: v })} placeholder="Observações" />
+        <div className="flex gap-2.5 justify-end mt-6 pt-5 border-t border-border">
+          <button onClick={() => setEntryOpen(false)} className="bg-background text-text-2 border border-border rounded-[10px] px-[18px] py-2.5 text-[13.5px] font-bold hover:bg-border transition-colors">Cancelar</button>
+          <button onClick={saveEntry} className="flex items-center gap-[7px] bg-primary text-primary-foreground rounded-[10px] px-[18px] py-2.5 text-[13.5px] font-bold hover:bg-primary-dark transition-all">
+            <Check className="w-4 h-4" /> Confirmar Entrada
+          </button>
+        </div>
       </Modal>
     </div>
   );
@@ -199,11 +271,9 @@ function Field({ label, value, onChange, placeholder, type = 'text', options, up
           {options?.map(o => <option key={o}>{o}</option>)}
         </select>
       ) : (
-        <input
-          type={type} value={value} onChange={e => onChange(uppercase ? e.target.value.toUpperCase() : e.target.value)}
+        <input type={type} value={value} onChange={e => onChange(uppercase ? e.target.value.toUpperCase() : e.target.value)}
           placeholder={placeholder} className={`${cls} ${uppercase ? 'uppercase' : ''}`}
-          step={type === 'number' ? '0.01' : undefined} min={type === 'number' ? '0' : undefined}
-        />
+          step={type === 'number' ? '0.01' : undefined} min={type === 'number' ? '0' : undefined} />
       )}
     </div>
   );
