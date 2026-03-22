@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { addToQueue } from './syncQueue';
 
 export interface Product {
   id: number;
@@ -53,25 +54,38 @@ export function useStore() {
   useEffect(() => { localStorage.setItem('mb_vendas', JSON.stringify(vendas)); }, [vendas]);
 
   const addProduct = useCallback((p: Omit<Product, 'id'>) => {
-    setProdutos(prev => [...prev, { ...p, id: Date.now() + Math.floor(Math.random() * 9999) }]);
+    const newProduct = { ...p, id: Date.now() + Math.floor(Math.random() * 9999) };
+    setProdutos(prev => [...prev, newProduct]);
+    // Queue for future backend sync
+    if (!navigator.onLine) {
+      addToQueue('create_product', newProduct as unknown as Record<string, unknown>);
+    }
   }, []);
 
   const updateProduct = useCallback((id: number, data: Partial<Product>) => {
     setProdutos(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+    if (!navigator.onLine) {
+      addToQueue('update_product', { id, ...data } as Record<string, unknown>);
+    }
   }, []);
 
   const deleteProduct = useCallback((id: number) => {
     setProdutos(prev => prev.filter(p => p.id !== id));
+    if (!navigator.onLine) {
+      addToQueue('delete_product', { id });
+    }
   }, []);
 
   const addSale = useCallback((sale: Omit<Sale, 'id'>) => {
     const newSale = { ...sale, id: Date.now() + Math.floor(Math.random() * 9999) };
     setVendas(prev => [...prev, newSale]);
-    // Deduct stock
     setProdutos(prev => prev.map(p => {
       const item = sale.itens.find(i => i.id === p.id);
       return item ? { ...p, est: p.est - item.qty } : p;
     }));
+    if (!navigator.onLine) {
+      addToQueue('create_sale', newSale as unknown as Record<string, unknown>);
+    }
     return newSale;
   }, []);
 
