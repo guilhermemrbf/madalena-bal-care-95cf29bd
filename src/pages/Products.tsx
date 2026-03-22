@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Check } from 'lucide-react';
+import { Search, Plus, Check, Package } from 'lucide-react';
 import { Product, fmt, categories } from '@/store/useStore';
 import { useToastCustom } from '@/components/Toast';
 import Modal from '@/components/Modal';
@@ -142,16 +142,16 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
             <p className="text-[13px] text-muted-foreground mt-0.5">Preencha os dados do produto</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3.5 mb-4">
+        <div className="grid grid-cols-2 gap-3.5">
           <Field label="Código do Produto" value={form.cod} onChange={v => setForm({ ...form, cod: v })} placeholder="Ex: MED001" uppercase />
           <Field label="Categoria" value={form.cat} onChange={v => setForm({ ...form, cat: v })} type="select" options={categories} />
         </div>
         <Field label="Nome Completo do Produto" value={form.nome} onChange={v => setForm({ ...form, nome: v })} placeholder="Ex: Dipirona 500mg — caixa c/10 comprimidos" />
-        <div className="grid grid-cols-2 gap-3.5 mb-4">
+        <div className="grid grid-cols-2 gap-3.5">
           <Field label="Preço de Venda (R$)" value={form.preco} onChange={v => setForm({ ...form, preco: v })} type="number" />
           <Field label="Preço de Custo (R$)" value={form.custo} onChange={v => setForm({ ...form, custo: v })} type="number" />
         </div>
-        <div className="grid grid-cols-2 gap-3.5 mb-4">
+        <div className="grid grid-cols-2 gap-3.5">
           <Field label="Quantidade em Estoque" value={form.est} onChange={v => setForm({ ...form, est: v })} type="number" />
           <Field label="Estoque Mínimo (alerta)" value={form.min} onChange={v => setForm({ ...form, min: v })} type="number" />
         </div>
@@ -188,5 +188,3 @@ function Field({ label, value, onChange, placeholder, type = 'text', options, up
     </div>
   );
 }
-
-import { Package } from 'lucide-react';
