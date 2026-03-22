@@ -97,7 +97,7 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={8} className="text-center py-16 text-muted-foreground font-semibold">Nenhum produto encontrado</td></tr>
+              <tr><td colSpan={9} className="text-center py-16 text-muted-foreground font-semibold">Nenhum produto encontrado</td></tr>
             ) : filtered.map(p => {
               const pct = Math.min(100, Math.round((p.est / Math.max(p.min * 3, 1)) * 100));
               const barColor = p.est <= 0 ? 'bg-destructive' : p.est <= p.min ? 'bg-[#f0a030]' : 'bg-accent';
