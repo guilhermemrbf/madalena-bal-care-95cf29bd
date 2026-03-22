@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Plus, Minus, X, ShoppingBag, CreditCard, Check, Camera, ScanLine } from 'lucide-react';
-import { Product, CartItem, Sale, fmt } from '@/store/useStore';
+import { Plus, Minus, X, ShoppingBag, CreditCard, Check, Camera, ScanLine, Search, Percent, DollarSign } from 'lucide-react';
+import { Product, CartItem, Sale, Cliente, fmt } from '@/store/useStore';
 import { useToastCustom } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import BarcodeScanner from '@/components/BarcodeScanner';
@@ -8,12 +8,13 @@ import Barcode from 'react-barcode';
 
 interface Props {
   produtos: Product[];
+  clientes: Cliente[];
   onSale: (sale: Omit<Sale, 'id'>) => Sale;
 }
 
 const paymentMethods = ['Dinheiro', 'Débito', 'Crédito', 'PIX', 'Vale Farmácia', 'Convênio'];
 
-export default function POS({ produtos, onSale }: Props) {
+export default function POS({ produtos, clientes, onSale }: Props) {
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [pgtoOpen, setPgtoOpen] = useState(false);
@@ -28,8 +29,31 @@ export default function POS({ produtos, onSale }: Props) {
   const lastKeyTime = useRef(0);
   const barcodeBuffer = useRef('');
 
+  // Client selection
+  const [clienteSearch, setClienteSearch] = useState('');
+  const [clienteSel, setClienteSel] = useState<Cliente | null>(null);
+  const [clienteDropdown, setClienteDropdown] = useState(false);
+
+  // Discounts
+  const [descontoGeral, setDescontoGeral] = useState('');
+  const [descontoGeralTipo, setDescontoGeralTipo] = useState<'%' | 'R$'>('%');
+  const [editingDiscount, setEditingDiscount] = useState<number | null>(null);
+  const [itemDesconto, setItemDesconto] = useState('');
+  const [itemDescontoTipo, setItemDescontoTipo] = useState<'%' | 'R$'>('%');
+
   const available = produtos.filter(p => p.est > 0 && (p.nome.toLowerCase().includes(search.toLowerCase()) || p.cod.toLowerCase().includes(search.toLowerCase())));
-  const total = cart.reduce((a, i) => a + i.preco * i.qty, 0);
+
+  // Calculate totals with discounts
+  const subtotal = cart.reduce((a, i) => {
+    const itemTotal = i.preco * i.qty;
+    if (i.desconto && i.desconto > 0) {
+      return a + (i.descontoTipo === '%' ? itemTotal * (1 - i.desconto / 100) : Math.max(0, itemTotal - i.desconto));
+    }
+    return a + itemTotal;
+  }, 0);
+
+  const descontoGeralVal = descontoGeral ? (descontoGeralTipo === '%' ? subtotal * parseFloat(descontoGeral) / 100 : parseFloat(descontoGeral)) : 0;
+  const total = Math.max(0, subtotal - (descontoGeralVal || 0));
   const totalItens = cart.reduce((a, i) => a + i.qty, 0);
 
   const addToCart = useCallback((p: Product) => {
@@ -48,10 +72,7 @@ export default function POS({ produtos, onSale }: Props) {
     const normalized = code.trim().toUpperCase();
     const product = produtos.find(p => p.cod.toUpperCase() === normalized);
     if (product) {
-      if (product.est <= 0) {
-        showToast(`${product.nome.split('—')[0].trim()} — sem estoque!`, 'error');
-        return;
-      }
+      if (product.est <= 0) { showToast(`${product.nome.split('—')[0].trim()} — sem estoque!`, 'error'); return; }
       addToCart(product);
       setSearch('');
     } else {
@@ -59,43 +80,28 @@ export default function POS({ produtos, onSale }: Props) {
     }
   }, [produtos, addToCart, showToast]);
 
-  // Detect barcode scanner input (rapid keystrokes ending with Enter)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const now = Date.now();
-      // Ignore if typing in other inputs (modals etc)
       if (pgtoOpen || reciboOpen || scannerOpen) return;
-      
       if (e.key === 'Enter' && barcodeBuffer.current.length >= 3) {
         e.preventDefault();
         findAndAddByCode(barcodeBuffer.current);
         barcodeBuffer.current = '';
         return;
       }
-
-      if (now - lastKeyTime.current > 100) {
-        barcodeBuffer.current = '';
-      }
-
-      if (e.key.length === 1) {
-        barcodeBuffer.current += e.key;
-        lastKeyTime.current = now;
-      }
+      if (now - lastKeyTime.current > 100) barcodeBuffer.current = '';
+      if (e.key.length === 1) { barcodeBuffer.current += e.key; lastKeyTime.current = now; }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [findAndAddByCode, pgtoOpen, reciboOpen, scannerOpen]);
 
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && search.trim()) {
-      findAndAddByCode(search);
-    }
+    if (e.key === 'Enter' && search.trim()) findAndAddByCode(search);
   };
 
-  const handleScan = useCallback((code: string) => {
-    findAndAddByCode(code);
-  }, [findAndAddByCode]);
+  const handleScan = useCallback((code: string) => { findAndAddByCode(code); }, [findAndAddByCode]);
 
   const changeQty = (id: number, d: number) => {
     setCart(prev => {
@@ -109,70 +115,79 @@ export default function POS({ produtos, onSale }: Props) {
     });
   };
 
-  const openPgto = () => { setPgtoSel(null); setRecebido(''); setPgtoOpen(true); };
+  const applyItemDiscount = (id: number) => {
+    const val = parseFloat(itemDesconto);
+    if (isNaN(val) || val < 0) return;
+    setCart(prev => prev.map(i => i.id === id ? { ...i, desconto: val, descontoTipo: itemDescontoTipo } : i));
+    setEditingDiscount(null);
+    setItemDesconto('');
+  };
 
+  const openPgto = () => { setPgtoSel(null); setRecebido(''); setPgtoOpen(true); };
   const troco = parseFloat(recebido) - total;
   const canConfirm = pgtoSel && (pgtoSel !== 'Dinheiro' || parseFloat(recebido) >= total);
 
   const confirm = () => {
     if (!pgtoSel) return;
-    const sale = onSale({ data: new Date().toISOString(), itens: [...cart], pgto: pgtoSel, total });
+    const saleData: Omit<Sale, 'id'> = {
+      data: new Date().toISOString(),
+      itens: [...cart],
+      pgto: pgtoSel,
+      total,
+      subtotal: cart.reduce((a, i) => a + i.preco * i.qty, 0),
+      descontoGeral: descontoGeralVal || 0,
+      descontoGeralTipo,
+      clienteId: clienteSel?.id || null,
+      clienteNome: clienteSel?.nome || undefined,
+    };
+    const sale = onSale(saleData);
     setLastSale(sale);
     setPgtoOpen(false);
     setReciboOpen(true);
   };
 
-  const novaVenda = () => { setReciboOpen(false); setCart([]); };
+  const novaVenda = () => {
+    setReciboOpen(false);
+    setCart([]);
+    setClienteSel(null);
+    setClienteSearch('');
+    setDescontoGeral('');
+  };
+
+  const filteredClientes = clientes.filter(c =>
+    c.nome.toLowerCase().includes(clienteSearch.toLowerCase()) || c.telefone.includes(clienteSearch)
+  );
 
   return (
     <div className="grid grid-cols-[1fr_380px] gap-[22px]" style={{ height: 'calc(100vh - 200px)' }}>
       {/* Left - Product Grid */}
       <div className="flex flex-col gap-3.5 overflow-hidden">
         <div className="flex gap-2.5">
-          <input
-            ref={searchRef}
-            value={search} onChange={e => setSearch(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
+          <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} onKeyDown={handleSearchKeyDown}
             className="flex-1 py-[13px] px-[18px] border-2 border-border rounded-xl font-body text-[15px] outline-none bg-card focus:border-primary focus:shadow-[0_0_0_4px_rgba(26,107,60,0.08)] transition-all"
-            placeholder="🔍  Digite o nome, código ou use o leitor de barras..."
-          />
-          <button
-            onClick={() => setScannerOpen(true)}
-            className="flex items-center gap-2 px-4 py-[13px] bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:bg-primary-dark hover:shadow-[0_4px_12px_rgba(26,107,60,0.35)] transition-all shrink-0"
-            title="Abrir leitor de código de barras"
-          >
-            <Camera className="w-5 h-5" />
-            <span className="hidden xl:inline">Escanear</span>
+            placeholder="🔍  Digite o nome, código ou use o leitor de barras..." />
+          <button onClick={() => setScannerOpen(true)}
+            className="flex items-center gap-2 px-4 py-[13px] bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:bg-primary-dark hover:shadow-[0_4px_12px_rgba(26,107,60,0.35)] transition-all shrink-0">
+            <Camera className="w-5 h-5" /><span className="hidden xl:inline">Escanear</span>
           </button>
         </div>
-
-        {/* Barcode scanner mode hint */}
         <div className="flex items-center gap-2 px-3 py-2 bg-accent-light rounded-lg text-xs font-semibold text-accent">
           <ScanLine className="w-4 h-4 shrink-0" />
           <span>Leitor USB/Bluetooth ativo — escaneie um código de barras ou pressione Enter após digitar o código</span>
         </div>
-
         <div className="grid grid-cols-3 gap-3 overflow-y-auto pb-2" style={{ alignContent: 'start' }}>
           {available.length === 0 ? (
             <div className="col-span-3 text-center py-16 text-muted-foreground font-bold text-[15px]">Nenhum produto disponível</div>
           ) : available.map(p => (
-            <div
-              key={p.id}
-              className="bg-card border-2 border-border rounded-[14px] p-4 cursor-pointer hover:border-primary hover:shadow-[0_6px_20px_rgba(26,107,60,0.15)] hover:-translate-y-[3px] active:-translate-y-px transition-all relative group"
-            >
+            <div key={p.id} className="bg-card border-2 border-border rounded-[14px] p-4 cursor-pointer hover:border-primary hover:shadow-[0_6px_20px_rgba(26,107,60,0.15)] hover:-translate-y-[3px] active:-translate-y-px transition-all relative group">
               <div className="inline-block text-[10px] font-extrabold uppercase tracking-wide text-accent bg-accent-light px-2 py-0.5 rounded-full mb-2">{p.cat}</div>
               <div className="absolute top-3 right-3 flex gap-1">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setBarcodeModalProduct(p); }}
-                  className="w-7 h-7 bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground"
-                  title="Ver código de barras"
-                >
+                <button onClick={(e) => { e.stopPropagation(); setBarcodeModalProduct(p); }}
+                  className="w-7 h-7 bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground">
                   <ScanLine className="w-3.5 h-3.5" />
                 </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); addToCart(p); }}
-                  className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                >
+                <button onClick={(e) => { e.stopPropagation(); addToCart(p); }}
+                  className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity">
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
@@ -202,6 +217,41 @@ export default function POS({ produtos, onSale }: Props) {
           )}
         </div>
 
+        {/* Client selection */}
+        <div className="px-[18px] py-3 border-b border-border bg-[#fafcfb]">
+          <label className="block text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1">Cliente</label>
+          {clienteSel ? (
+            <div className="flex items-center justify-between bg-[hsl(148,40%,93%)] rounded-lg px-3 py-2">
+              <div>
+                <span className="font-bold text-[13px] text-primary">{clienteSel.nome}</span>
+                <span className="ml-2 text-[11px] text-accent font-bold">{clienteSel.pontos} pts</span>
+              </div>
+              <button onClick={() => { setClienteSel(null); setClienteSearch(''); }} className="text-muted-foreground hover:text-destructive"><X className="w-4 h-4" /></button>
+            </div>
+          ) : (
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <input value={clienteSearch} onChange={e => { setClienteSearch(e.target.value); setClienteDropdown(true); }}
+                onFocus={() => setClienteDropdown(true)} onBlur={() => setTimeout(() => setClienteDropdown(false), 200)}
+                className="w-full pl-8 pr-3 py-[7px] border border-border rounded-lg text-xs outline-none bg-background focus:border-primary transition-all"
+                placeholder="Buscar cliente ou deixar avulso..." />
+              {clienteDropdown && clienteSearch && (
+                <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-lg shadow-lg mt-1 z-10 max-h-[150px] overflow-y-auto">
+                  {filteredClientes.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-muted-foreground">Nenhum cliente encontrado</div>
+                  ) : filteredClientes.map(c => (
+                    <button key={c.id} onClick={() => { setClienteSel(c); setClienteSearch(''); setClienteDropdown(false); }}
+                      className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors flex justify-between">
+                      <span className="font-bold">{c.nome}</span>
+                      <span className="text-accent font-bold">{c.pontos} pts</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="flex-1 overflow-y-auto">
           {cart.length === 0 ? (
             <div className="py-[50px] px-5 text-center text-muted-foreground">
@@ -210,37 +260,68 @@ export default function POS({ produtos, onSale }: Props) {
               <span className="text-xs mt-1 block">Selecione produtos ou escaneie um código</span>
             </div>
           ) : cart.map(it => (
-            <div key={it.id} className="px-[18px] py-[13px] border-b border-border flex items-center gap-2.5">
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-[13px] truncate">{it.nome.split('—')[0].trim()}</div>
-                <div className="text-xs text-muted-foreground">{fmt(it.preco)} × {it.qty} = <b>{fmt(it.preco * it.qty)}</b></div>
+            <div key={it.id} className="px-[18px] py-[13px] border-b border-border">
+              <div className="flex items-center gap-2.5">
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-[13px] truncate">{it.nome.split('—')[0].trim()}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {fmt(it.preco)} × {it.qty} = <b>{fmt(it.preco * it.qty)}</b>
+                    {it.desconto && it.desconto > 0 && (
+                      <span className="text-destructive ml-1">(-{it.descontoTipo === '%' ? `${it.desconto}%` : fmt(it.desconto)})</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button onClick={() => changeQty(it.id, -1)} className="w-7 h-7 border border-border rounded-lg bg-background flex items-center justify-center font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"><Minus className="w-3.5 h-3.5" /></button>
+                  <span className="font-extrabold text-sm min-w-[22px] text-center">{it.qty}</span>
+                  <button onClick={() => changeQty(it.id, 1)} className="w-7 h-7 border border-border rounded-lg bg-background flex items-center justify-center font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"><Plus className="w-3.5 h-3.5" /></button>
+                </div>
+                <button onClick={() => setEditingDiscount(editingDiscount === it.id ? null : it.id)} className="p-1 rounded-md text-muted-foreground hover:text-accent transition-colors" title="Desconto">
+                  <Percent className="w-3.5 h-3.5" />
+                </button>
+                <button onClick={() => setCart(prev => prev.filter(i => i.id !== it.id))} className="p-1 rounded-md text-muted-foreground hover:text-destructive transition-colors">
+                  <X className="w-[15px] h-[15px]" />
+                </button>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button onClick={() => changeQty(it.id, -1)} className="w-7 h-7 border border-border rounded-lg bg-background flex items-center justify-center font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"><Minus className="w-3.5 h-3.5" /></button>
-                <span className="font-extrabold text-sm min-w-[22px] text-center">{it.qty}</span>
-                <button onClick={() => changeQty(it.id, 1)} className="w-7 h-7 border border-border rounded-lg bg-background flex items-center justify-center font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"><Plus className="w-3.5 h-3.5" /></button>
-              </div>
-              <button onClick={() => setCart(prev => prev.filter(i => i.id !== it.id))} className="p-1 rounded-md text-muted-foreground hover:text-destructive transition-colors">
-                <X className="w-[15px] h-[15px]" />
-              </button>
+              {editingDiscount === it.id && (
+                <div className="flex items-center gap-1.5 mt-2 pl-1">
+                  <input value={itemDesconto} onChange={e => setItemDesconto(e.target.value)} type="number" min="0" step="0.01"
+                    className="w-20 py-1 px-2 border border-border rounded text-xs outline-none bg-background focus:border-primary" placeholder="0" />
+                  <button onClick={() => setItemDescontoTipo(itemDescontoTipo === '%' ? 'R$' : '%')}
+                    className="px-2 py-1 rounded text-[10px] font-bold border border-border bg-background hover:bg-muted transition-colors">{itemDescontoTipo}</button>
+                  <button onClick={() => applyItemDiscount(it.id)}
+                    className="px-2 py-1 rounded text-[10px] font-bold bg-primary text-primary-foreground">OK</button>
+                </div>
+              )}
             </div>
           ))}
         </div>
 
         <div className="px-[18px] py-[18px] border-t-2 border-border shrink-0 bg-[#fafcfb]">
+          {/* General discount */}
+          {cart.length > 0 && (
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase">Desconto Geral:</span>
+              <input value={descontoGeral} onChange={e => setDescontoGeral(e.target.value)} type="number" min="0" step="0.01"
+                className="w-16 py-1 px-2 border border-border rounded text-xs outline-none bg-background focus:border-primary" placeholder="0" />
+              <button onClick={() => setDescontoGeralTipo(descontoGeralTipo === '%' ? 'R$' : '%')}
+                className="px-2 py-1 rounded text-[10px] font-bold border border-border bg-background hover:bg-muted transition-colors">{descontoGeralTipo}</button>
+            </div>
+          )}
           <div className="mb-3.5">
-            <div className="flex justify-between text-[13px] text-muted-foreground mb-1"><span>Subtotal</span><span>{fmt(total)}</span></div>
+            <div className="flex justify-between text-[13px] text-muted-foreground mb-1"><span>Subtotal</span><span>{fmt(subtotal)}</span></div>
+            {(descontoGeralVal > 0) && (
+              <div className="flex justify-between text-[13px] text-destructive mb-1"><span>Desconto</span><span>- {fmt(descontoGeralVal)}</span></div>
+            )}
             <div className="flex justify-between text-[13px] text-muted-foreground"><span>Itens</span><span>{totalItens}</span></div>
             <div className="flex justify-between items-baseline border-t border-border pt-3 mt-2">
               <span className="text-sm font-bold">Total a Pagar</span>
               <span className="font-display text-[28px] text-primary font-bold">{fmt(total)}</span>
             </div>
           </div>
-          <button
-            onClick={openPgto} disabled={cart.length === 0}
+          <button onClick={openPgto} disabled={cart.length === 0}
             className="w-full py-[15px] rounded-xl border-none font-display text-[17px] font-bold text-primary-foreground tracking-wide shadow-[0_4px_16px_rgba(26,107,60,0.35)] hover:-translate-y-px hover:shadow-[0_6px_20px_rgba(26,107,60,0.45)] transition-all disabled:bg-border disabled:text-muted-foreground disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
-            style={{ background: cart.length > 0 ? 'linear-gradient(135deg, hsl(148,61%,26%), hsl(90,60%,41%))' : undefined }}
-          >
+            style={{ background: cart.length > 0 ? 'linear-gradient(135deg, hsl(148,61%,26%), hsl(90,60%,41%))' : undefined }}>
             Finalizar Venda →
           </button>
         </div>
@@ -249,24 +330,21 @@ export default function POS({ produtos, onSale }: Props) {
       {/* Payment Modal */}
       <Modal open={pgtoOpen} onClose={() => setPgtoOpen(false)} width="w-[520px]">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 bg-[hsl(148,40%,93%)] rounded-xl flex items-center justify-center text-primary">
-            <CreditCard className="w-[22px] h-[22px]" />
-          </div>
+          <div className="w-11 h-11 bg-[hsl(148,40%,93%)] rounded-xl flex items-center justify-center text-primary"><CreditCard className="w-[22px] h-[22px]" /></div>
           <div>
             <h3 className="font-display text-xl text-primary">Finalizar Venda</h3>
             <p className="text-[13px] text-muted-foreground mt-0.5">Selecione a forma de pagamento</p>
           </div>
         </div>
+        {clienteSel && <p className="text-[13px] mb-3 font-bold">Cliente: <span className="text-primary">{clienteSel.nome}</span> · {clienteSel.pontos} pontos · +{Math.floor(total / 10)} novos pontos</p>}
         <div className="rounded-[14px] p-5 text-center mb-5" style={{ background: 'linear-gradient(135deg, hsl(148,61%,26%), hsl(90,60%,41%))' }}>
           <p className="text-white/75 text-[13px] font-semibold mb-1">Total a Pagar</p>
           <div className="font-display text-[42px] font-bold text-white">{fmt(total)}</div>
         </div>
         <div className="grid grid-cols-3 gap-2.5 mb-[18px]">
           {paymentMethods.map(m => (
-            <button
-              key={m} onClick={() => { setPgtoSel(m); if (m !== 'Dinheiro') setRecebido(''); }}
-              className={`border-2 rounded-xl py-3.5 px-2 text-center text-[12.5px] font-bold transition-all ${pgtoSel === m ? 'border-primary bg-[hsl(148,40%,93%)] text-primary' : 'border-border bg-background text-text-2 hover:border-primary hover:bg-[hsl(148,40%,93%)] hover:text-primary'}`}
-            >
+            <button key={m} onClick={() => { setPgtoSel(m); if (m !== 'Dinheiro') setRecebido(''); }}
+              className={`border-2 rounded-xl py-3.5 px-2 text-center text-[12.5px] font-bold transition-all ${pgtoSel === m ? 'border-primary bg-[hsl(148,40%,93%)] text-primary' : 'border-border bg-background text-text-2 hover:border-primary hover:bg-[hsl(148,40%,93%)] hover:text-primary'}`}>
               {m}
             </button>
           ))}
@@ -274,11 +352,9 @@ export default function POS({ produtos, onSale }: Props) {
         {pgtoSel === 'Dinheiro' && (
           <div>
             <label className="block text-[11.5px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Valor Recebido (R$)</label>
-            <input
-              type="number" value={recebido} onChange={e => setRecebido(e.target.value)}
+            <input type="number" value={recebido} onChange={e => setRecebido(e.target.value)}
               className="w-full py-[11px] px-[13px] border-[1.5px] border-border rounded-[10px] font-body text-sm outline-none bg-background focus:border-primary focus:bg-card transition-all mb-2.5"
-              step="0.01" placeholder="0,00"
-            />
+              step="0.01" placeholder="0,00" />
             <div className="bg-[hsl(148,40%,93%)] border border-border rounded-xl px-4 py-3.5 flex justify-between items-center">
               <span className="font-bold text-sm text-primary">💰 Troco</span>
               <span className="font-display text-[22px] font-bold text-primary">{fmt(troco >= 0 ? troco : 0)}</span>
@@ -296,9 +372,7 @@ export default function POS({ produtos, onSale }: Props) {
       {/* Receipt Modal */}
       <Modal open={reciboOpen} onClose={novaVenda} width="w-[440px]">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-11 h-11 bg-accent-light rounded-xl flex items-center justify-center text-accent">
-            <Check className="w-[22px] h-[22px]" />
-          </div>
+          <div className="w-11 h-11 bg-accent-light rounded-xl flex items-center justify-center text-accent"><Check className="w-[22px] h-[22px]" /></div>
           <div>
             <h3 className="font-display text-xl text-accent">Venda Confirmada!</h3>
             <p className="text-[13px] text-muted-foreground mt-0.5">Recibo da transação</p>
@@ -310,6 +384,7 @@ export default function POS({ produtos, onSale }: Props) {
             <p className="text-[11px] text-muted-foreground">NIF: 5000947253</p>
             <p className="text-[11px] text-muted-foreground">Data: {new Date(lastSale.data).toLocaleString('pt-BR')}</p>
             <p className="text-[11px] text-muted-foreground mb-3">Venda #{lastSale.id.toString().slice(-6)}</p>
+            {lastSale.clienteNome && <p className="text-[11px] text-primary font-bold mb-2">Cliente: {lastSale.clienteNome}</p>}
             <div className="border-t-2 border-dashed border-border pt-3 mb-2">
               {lastSale.itens.map((i, idx) => (
                 <div key={idx} className="flex justify-between py-0.5 border-b border-dashed border-muted text-left">
@@ -318,6 +393,12 @@ export default function POS({ produtos, onSale }: Props) {
                 </div>
               ))}
             </div>
+            {lastSale.subtotal && lastSale.subtotal !== lastSale.total && (
+              <>
+                <div className="flex justify-between py-1 text-[12px]"><span>Subtotal</span><span>{fmt(lastSale.subtotal)}</span></div>
+                <div className="flex justify-between py-1 text-[12px] text-destructive"><span>Desconto</span><span>- {fmt(lastSale.subtotal - lastSale.total)}</span></div>
+              </>
+            )}
             <div className="flex justify-between py-2 font-extrabold text-[15px] border-t-2 border-foreground">
               <span>TOTAL</span><span>{fmt(lastSale.total)}</span>
             </div>
@@ -349,10 +430,7 @@ export default function POS({ produtos, onSale }: Props) {
         )}
       </Modal>
 
-      {/* Camera Scanner */}
-      {scannerOpen && (
-        <BarcodeScanner onScan={handleScan} onClose={() => setScannerOpen(false)} />
-      )}
+      {scannerOpen && <BarcodeScanner onScan={handleScan} onClose={() => setScannerOpen(false)} />}
     </div>
   );
 }
