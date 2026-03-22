@@ -169,6 +169,19 @@ export default function Products({ produtos, onAdd, onUpdate, onDelete }: Props)
           </button>
         </div>
       </Modal>
+
+      <Modal open={!!barcodeProduct} onClose={() => setBarcodeProduct(null)} width="w-[380px]">
+        {barcodeProduct && (
+          <div className="text-center">
+            <h3 className="font-display text-lg text-primary mb-1">{barcodeProduct.nome.split('—')[0].trim()}</h3>
+            <p className="text-xs text-muted-foreground mb-4">{barcodeProduct.cod}</p>
+            <div className="flex justify-center mb-4">
+              <Barcode value={barcodeProduct.cod} format="CODE128" width={2} height={80} fontSize={14} background="#ffffff" lineColor="#0f2118" />
+            </div>
+            <p className="text-xs text-muted-foreground font-semibold">Imprima este código para etiquetar o produto</p>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
