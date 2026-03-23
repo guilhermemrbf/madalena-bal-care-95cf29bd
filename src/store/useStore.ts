@@ -19,7 +19,7 @@ export interface CartItem {
   preco: number;
   qty: number;
   desconto?: number;
-  descontoTipo?: '%' | 'R$';
+  descontoTipo?: '%' | 'Kz';
 }
 
 export interface Sale {
