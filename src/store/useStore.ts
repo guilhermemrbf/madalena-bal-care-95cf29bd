@@ -187,7 +187,7 @@ export function useStore() {
     }]);
     // Accumulate loyalty points if client linked
     if (sale.clienteId) {
-      const pontosGanhos = Math.floor(sale.total / 10);
+      const pontosGanhos = Math.floor(sale.total / 500);
       setClientes(prev => prev.map(c => c.id === sale.clienteId ? {
         ...c,
         pontos: c.pontos + pontosGanhos,
