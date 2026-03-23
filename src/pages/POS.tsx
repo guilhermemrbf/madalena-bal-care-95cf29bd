@@ -537,7 +537,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
           <div className="flex items-center gap-2.5 mb-4 bg-[hsl(148_40%_95%)] rounded-xl px-4 py-2.5 border border-primary/15">
             <User className="w-4 h-4 text-primary" />
             <span className="text-[13px] font-bold text-foreground">{clienteSel.nome}</span>
-            <span className="text-[11px] text-[hsl(var(--accent))] font-bold ml-auto">{clienteSel.pontos} pts · +{Math.floor(total / 10)} novos</span>
+            <span className="text-[11px] text-[hsl(var(--accent))] font-bold ml-auto">{clienteSel.pontos} pts · +{Math.floor(total / 500)} novos</span>
           </div>
         )}
         <div className="rounded-2xl p-6 text-center mb-6" style={{ background: 'linear-gradient(145deg, hsl(152,61%,15%), hsl(148,61%,26%), hsl(90,60%,41%))' }}>
