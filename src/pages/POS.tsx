@@ -44,10 +44,10 @@ export default function POS({ produtos, clientes, onSale }: Props) {
 
   // Discounts
   const [descontoGeral, setDescontoGeral] = useState('');
-  const [descontoGeralTipo, setDescontoGeralTipo] = useState<'%' | 'R$'>('%');
+  const [descontoGeralTipo, setDescontoGeralTipo] = useState<'%' | 'Kz'>('%');
   const [editingDiscount, setEditingDiscount] = useState<number | null>(null);
   const [itemDesconto, setItemDesconto] = useState('');
-  const [itemDescontoTipo, setItemDescontoTipo] = useState<'%' | 'R$'>('%');
+  const [itemDescontoTipo, setItemDescontoTipo] = useState<'%' | 'Kz'>('%');
 
   const categories = [...new Set(produtos.filter(p => p.est > 0).map(p => p.cat))];
 
