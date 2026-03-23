@@ -483,7 +483,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
                 className="flex-1 min-w-0 py-1.5 px-2.5 border border-border rounded-lg text-xs outline-none bg-background focus:border-primary"
                 placeholder="0"
               />
-              <button onClick={() => setDescontoGeralTipo(descontoGeralTipo === '%' ? 'R$' : '%')}
+              <button onClick={() => setDescontoGeralTipo(descontoGeralTipo === '%' ? 'Kz' : '%')}
                 className="px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-border bg-background hover:bg-card transition-colors min-w-[32px]">
                 {descontoGeralTipo}
               </button>
