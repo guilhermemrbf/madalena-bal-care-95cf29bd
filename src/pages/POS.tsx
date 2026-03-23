@@ -14,11 +14,11 @@ interface Props {
 
 const paymentMethods = [
   { name: 'Dinheiro', icon: Banknote },
-  { name: 'Débito', icon: CreditCard },
-  { name: 'Crédito', icon: CreditCard },
-  { name: 'PIX', icon: Smartphone },
-  { name: 'Vale Farmácia', icon: Gift },
+  { name: 'Multicaixa Express', icon: Smartphone },
+  { name: 'TPA Débito', icon: CreditCard },
+  { name: 'TPA Crédito', icon: CreditCard },
   { name: 'Convênio', icon: Building },
+  { name: 'Transferência Bancária', icon: Building },
 ];
 
 export default function POS({ produtos, clientes, onSale }: Props) {
@@ -44,10 +44,10 @@ export default function POS({ produtos, clientes, onSale }: Props) {
 
   // Discounts
   const [descontoGeral, setDescontoGeral] = useState('');
-  const [descontoGeralTipo, setDescontoGeralTipo] = useState<'%' | 'R$'>('%');
+  const [descontoGeralTipo, setDescontoGeralTipo] = useState<'%' | 'Kz'>('%');
   const [editingDiscount, setEditingDiscount] = useState<number | null>(null);
   const [itemDesconto, setItemDesconto] = useState('');
-  const [itemDescontoTipo, setItemDescontoTipo] = useState<'%' | 'R$'>('%');
+  const [itemDescontoTipo, setItemDescontoTipo] = useState<'%' | 'Kz'>('%');
 
   const categories = [...new Set(produtos.filter(p => p.est > 0).map(p => p.cat))];
 
@@ -132,7 +132,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
   const applyItemDiscount = (id: number) => {
     const val = parseFloat(itemDesconto);
     if (isNaN(val) || val < 0) return;
-    setCart(prev => prev.map(i => i.id === id ? { ...i, desconto: val, descontoTipo: itemDescontoTipo } : i));
+    setCart(prev => prev.map(i => i.id === id ? { ...i, desconto: val, descontoTipo: itemDescontoTipo as '%' | 'Kz' } : i));
     setEditingDiscount(null);
     setItemDesconto('');
   };
@@ -454,7 +454,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
                       placeholder="Valor"
                       autoFocus
                     />
-                    <button onClick={() => setItemDescontoTipo(itemDescontoTipo === '%' ? 'R$' : '%')}
+                    <button onClick={() => setItemDescontoTipo(itemDescontoTipo === '%' ? 'Kz' : '%')}
                       className="px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-border bg-background hover:bg-card transition-colors min-w-[32px]">
                       {itemDescontoTipo}
                     </button>
@@ -483,7 +483,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
                 className="flex-1 min-w-0 py-1.5 px-2.5 border border-border rounded-lg text-xs outline-none bg-background focus:border-primary"
                 placeholder="0"
               />
-              <button onClick={() => setDescontoGeralTipo(descontoGeralTipo === '%' ? 'R$' : '%')}
+              <button onClick={() => setDescontoGeralTipo(descontoGeralTipo === '%' ? 'Kz' : '%')}
                 className="px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-border bg-background hover:bg-card transition-colors min-w-[32px]">
                 {descontoGeralTipo}
               </button>
@@ -537,7 +537,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
           <div className="flex items-center gap-2.5 mb-4 bg-[hsl(148_40%_95%)] rounded-xl px-4 py-2.5 border border-primary/15">
             <User className="w-4 h-4 text-primary" />
             <span className="text-[13px] font-bold text-foreground">{clienteSel.nome}</span>
-            <span className="text-[11px] text-[hsl(var(--accent))] font-bold ml-auto">{clienteSel.pontos} pts · +{Math.floor(total / 10)} novos</span>
+            <span className="text-[11px] text-[hsl(var(--accent))] font-bold ml-auto">{clienteSel.pontos} pts · +{Math.floor(total / 500)} novos</span>
           </div>
         )}
         <div className="rounded-2xl p-6 text-center mb-6" style={{ background: 'linear-gradient(145deg, hsl(152,61%,15%), hsl(148,61%,26%), hsl(90,60%,41%))' }}>
@@ -563,7 +563,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
         </div>
         {pgtoSel === 'Dinheiro' && (
           <div className="bg-muted/30 rounded-2xl p-4">
-            <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-2">Valor Recebido (R$)</label>
+            <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-2">Valor Recebido (Kz)</label>
             <input
               type="number" value={recebido} onChange={e => setRecebido(e.target.value)}
               className="w-full py-3 px-4 border-2 border-border rounded-xl font-body text-base outline-none bg-background focus:border-primary transition-all mb-3"
@@ -603,6 +603,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
           <div className="bg-card border-2 border-dashed border-border rounded-2xl p-6 font-mono text-[13px] text-center my-4">
             <h4 className="font-display text-lg text-primary mb-1">Madalena Bal Farmácia</h4>
             <p className="text-[11px] text-muted-foreground">NIF: 5000947253</p>
+            <p className="text-[11px] text-muted-foreground">Luanda — Angola</p>
             <p className="text-[11px] text-muted-foreground">Data: {new Date(lastSale.data).toLocaleString('pt-BR')}</p>
             <p className="text-[11px] text-muted-foreground mb-3">Venda #{lastSale.id.toString().slice(-6)}</p>
             {lastSale.clienteNome && <p className="text-[11px] text-primary font-bold mb-2">Cliente: {lastSale.clienteNome}</p>}

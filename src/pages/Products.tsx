@@ -180,8 +180,8 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
         </div>
         <Field label="Nome Completo do Produto" value={form.nome} onChange={v => setForm({ ...form, nome: v })} placeholder="Ex: Dipirona 500mg — caixa c/10 comprimidos" />
         <div className="grid grid-cols-2 gap-3.5">
-          <Field label="Preço de Venda (R$)" value={form.preco} onChange={v => setForm({ ...form, preco: v })} type="number" />
-          <Field label="Preço de Custo (R$)" value={form.custo} onChange={v => setForm({ ...form, custo: v })} type="number" />
+          <Field label="Preço de Venda (Kz)" value={form.preco} onChange={v => setForm({ ...form, preco: v })} type="number" />
+          <Field label="Preço de Custo (Kz)" value={form.custo} onChange={v => setForm({ ...form, custo: v })} type="number" />
         </div>
         <div className="grid grid-cols-2 gap-3.5">
           <Field label="Quantidade em Estoque" value={form.est} onChange={v => setForm({ ...form, est: v })} type="number" />
@@ -236,7 +236,7 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
         </div>
         <div className="grid grid-cols-2 gap-3.5">
           <Field label="Quantidade Recebida" value={entry.quantidade} onChange={v => setEntry({ ...entry, quantidade: v })} type="number" />
-          <Field label="Preço de Custo (R$)" value={entry.custoPorUnidade} onChange={v => setEntry({ ...entry, custoPorUnidade: v })} type="number" />
+          <Field label="Preço de Custo (Kz)" value={entry.custoPorUnidade} onChange={v => setEntry({ ...entry, custoPorUnidade: v })} type="number" />
         </div>
         <div className="grid grid-cols-2 gap-3.5">
           <Field label="Nº do Lote" value={entry.lote} onChange={v => setEntry({ ...entry, lote: v })} placeholder="Ex: L2025D" uppercase />

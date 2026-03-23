@@ -97,7 +97,7 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
             )}
           </div>
         </div>
-        <div className="px-5 py-3 border-t border-white/10 text-[11px] text-white/40 text-center">© 2026 Madalena Bal Farmácia</div>
+        <div className="px-5 py-3 border-t border-white/10 text-[11px] text-white/40 text-center">© 2026 Madalena Bal Farmácia · Luanda, Angola</div>
       </aside>
 
       <main className="ml-[260px] flex-1 min-h-screen flex flex-col">
