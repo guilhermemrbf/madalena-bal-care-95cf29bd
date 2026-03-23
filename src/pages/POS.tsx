@@ -454,7 +454,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
                       placeholder="Valor"
                       autoFocus
                     />
-                    <button onClick={() => setItemDescontoTipo(itemDescontoTipo === '%' ? 'R$' : '%')}
+                    <button onClick={() => setItemDescontoTipo(itemDescontoTipo === '%' ? 'Kz' : '%')}
                       className="px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-border bg-background hover:bg-card transition-colors min-w-[32px]">
                       {itemDescontoTipo}
                     </button>
