@@ -14,11 +14,11 @@ interface Props {
 
 const paymentMethods = [
   { name: 'Dinheiro', icon: Banknote },
-  { name: 'Débito', icon: CreditCard },
-  { name: 'Crédito', icon: CreditCard },
-  { name: 'PIX', icon: Smartphone },
-  { name: 'Vale Farmácia', icon: Gift },
+  { name: 'Multicaixa Express', icon: Smartphone },
+  { name: 'TPA Débito', icon: CreditCard },
+  { name: 'TPA Crédito', icon: CreditCard },
   { name: 'Convênio', icon: Building },
+  { name: 'Transferência Bancária', icon: Building },
 ];
 
 export default function POS({ produtos, clientes, onSale }: Props) {
