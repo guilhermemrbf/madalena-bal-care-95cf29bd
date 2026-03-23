@@ -30,7 +30,7 @@ export interface Sale {
   total: number;
   subtotal?: number;
   descontoGeral?: number;
-  descontoGeralTipo?: '%' | 'R$';
+  descontoGeralTipo?: '%' | 'Kz';
   clienteId?: number | null;
   clienteNome?: string;
 }

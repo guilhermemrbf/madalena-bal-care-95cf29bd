@@ -117,7 +117,7 @@ export default function FornecedoresPage({ fornecedores, financeiro, onAdd, onUp
         </div>
         <Field label="Nome da Empresa" value={form.nome} onChange={v => setForm({ ...form, nome: v })} placeholder="Nome" />
         <div className="grid grid-cols-2 gap-3.5">
-          <Field label="NIF ou CNPJ" value={form.nif} onChange={v => setForm({ ...form, nif: v })} placeholder="NIF" />
+          <Field label="NIF" value={form.nif} onChange={v => setForm({ ...form, nif: v })} placeholder="NIF" />
           <Field label="Telefone / WhatsApp" value={form.telefone} onChange={v => setForm({ ...form, telefone: v })} placeholder="Telefone" />
         </div>
         <div className="grid grid-cols-2 gap-3.5">

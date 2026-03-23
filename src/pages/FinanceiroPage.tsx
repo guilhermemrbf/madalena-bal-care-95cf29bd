@@ -183,7 +183,7 @@ export default function FinanceiroPage(props: Props) {
         <FField label="Descrição" value={contaForm.descricao} onChange={v => setContaForm({ ...contaForm, descricao: v })} placeholder="Descrição" />
         <div className="grid grid-cols-2 gap-3.5">
           <FField label="Vencimento" value={contaForm.vencimento} onChange={v => setContaForm({ ...contaForm, vencimento: v })} type="date" />
-          <FField label="Valor (R$)" value={contaForm.valor} onChange={v => setContaForm({ ...contaForm, valor: v })} type="number" />
+          <FField label="Valor (Kz)" value={contaForm.valor} onChange={v => setContaForm({ ...contaForm, valor: v })} type="number" />
         </div>
         <FField label="Observações" value={contaForm.observacoes} onChange={v => setContaForm({ ...contaForm, observacoes: v })} placeholder="Obs" />
         <div className="flex gap-2.5 justify-end mt-6 pt-5 border-t border-border">

@@ -603,6 +603,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
           <div className="bg-card border-2 border-dashed border-border rounded-2xl p-6 font-mono text-[13px] text-center my-4">
             <h4 className="font-display text-lg text-primary mb-1">Madalena Bal Farmácia</h4>
             <p className="text-[11px] text-muted-foreground">NIF: 5000947253</p>
+            <p className="text-[11px] text-muted-foreground">Luanda — Angola</p>
             <p className="text-[11px] text-muted-foreground">Data: {new Date(lastSale.data).toLocaleString('pt-BR')}</p>
             <p className="text-[11px] text-muted-foreground mb-3">Venda #{lastSale.id.toString().slice(-6)}</p>
             {lastSale.clienteNome && <p className="text-[11px] text-primary font-bold mb-2">Cliente: {lastSale.clienteNome}</p>}
