@@ -563,7 +563,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
         </div>
         {pgtoSel === 'Dinheiro' && (
           <div className="bg-muted/30 rounded-2xl p-4">
-            <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-2">Valor Recebido (R$)</label>
+            <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-2">Valor Recebido (Kz)</label>
             <input
               type="number" value={recebido} onChange={e => setRecebido(e.target.value)}
               className="w-full py-3 px-4 border-2 border-border rounded-xl font-body text-base outline-none bg-background focus:border-primary transition-all mb-3"
