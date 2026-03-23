@@ -321,7 +321,7 @@ export function useStore() {
   };
 }
 
-export const fmt = (v: number) => 'R$ ' + (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+export const fmt = (v: number) => 'Kz ' + (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const categories = ['Medicamentos', 'Higiene', 'Suplementos', 'Beleza', 'Outros'];
 export const categoriasEntrada = ['Venda', 'Outros'];
 export const categoriasSaida = ['Compra de Estoque', 'Aluguel', 'Salários', 'Água/Luz', 'Impostos', 'Manutenção', 'Outros'];
