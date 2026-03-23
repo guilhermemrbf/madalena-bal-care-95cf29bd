@@ -132,7 +132,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
   const applyItemDiscount = (id: number) => {
     const val = parseFloat(itemDesconto);
     if (isNaN(val) || val < 0) return;
-    setCart(prev => prev.map(i => i.id === id ? { ...i, desconto: val, descontoTipo: itemDescontoTipo } : i));
+    setCart(prev => prev.map(i => i.id === id ? { ...i, desconto: val, descontoTipo: itemDescontoTipo as '%' | 'Kz' } : i));
     setEditingDiscount(null);
     setItemDesconto('');
   };
