@@ -161,7 +161,7 @@ export default function FinanceiroPage(props: Props) {
               {categoriasSaida.map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
-          <FField label="Valor (R$)" value={form.valor} onChange={v => setForm({ ...form, valor: v })} type="number" />
+          <FField label="Valor (Kz)" value={form.valor} onChange={v => setForm({ ...form, valor: v })} type="number" />
         </div>
         <div className="grid grid-cols-2 gap-3.5">
           <FField label="Data" value={form.data} onChange={v => setForm({ ...form, data: v })} type="date" />
