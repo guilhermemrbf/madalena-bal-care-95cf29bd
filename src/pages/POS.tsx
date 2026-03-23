@@ -600,7 +600,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
           </div>
         </div>
         {lastSale && (
-          <div className="bg-card border-2 border-dashed border-border rounded-2xl p-6 font-mono text-[13px] text-center my-4">
+          <div id="recibo-print" className="bg-card border-2 border-dashed border-border rounded-2xl p-6 font-mono text-[13px] text-center my-4">
             <h4 className="font-display text-lg text-primary mb-1">Madalena Bal Farmácia</h4>
             <p className="text-[11px] text-muted-foreground">NIF: 5000947253</p>
             <p className="text-[11px] text-muted-foreground">Luanda — Angola</p>
@@ -631,6 +631,30 @@ export default function POS({ produtos, clientes, onSale }: Props) {
           </div>
         )}
         <div className="flex gap-2.5 justify-end pt-3">
+          <button onClick={() => {
+            const printContent = document.getElementById('recibo-print');
+            if (!printContent) return;
+            const win = window.open('', '_blank', 'width=420,height=600');
+            if (!win) return;
+            win.document.write(`<html><head><title>Recibo</title><style>
+              body{font-family:'Courier New',monospace;padding:20px;font-size:13px;text-align:center;max-width:380px;margin:0 auto}
+              .title{font-family:serif;font-size:18px;font-weight:bold;color:#1a6b3c}
+              .total-row{font-size:16px;font-weight:800;border-top:2px solid #000;padding:8px 0;margin-top:4px}
+              .item-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #ccc;text-align:left;font-size:12px}
+              .sep{border-top:2px dashed #ccc;padding-top:8px;margin-top:4px}
+              .sub{font-size:11px;color:#666}
+              .discount{color:#c00}
+              @media print{body{padding:0}}
+            </style></head><body>${printContent.innerHTML}</body></html>`);
+            win.document.close();
+            win.focus();
+            win.print();
+            win.close();
+          }}
+            className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold border border-border bg-card text-foreground hover:bg-muted transition-all"
+          >
+            🖨️ Imprimir Nota
+          </button>
           <button onClick={novaVenda}
             className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-primary-foreground transition-all hover:shadow-lg"
             style={{ background: 'linear-gradient(135deg, hsl(148,61%,26%), hsl(90,60%,41%))' }}
