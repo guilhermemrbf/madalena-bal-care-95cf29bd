@@ -1,6 +1,5 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { LayoutDashboard, Package, CreditCard, ClipboardList, Activity, Users, LogOut, Calendar, UserCheck, Truck, DollarSign } from 'lucide-react';
-import PharmacyLogo from './PharmacyLogo';
 import ConnectionStatus, { ConnectionBadge } from './ConnectionStatus';
 
 interface LayoutProps {
@@ -48,15 +47,16 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
     <div className="flex min-h-screen">
       <ConnectionStatus />
       <aside className="w-[260px] fixed h-screen flex flex-col z-20" style={{ background: 'linear-gradient(180deg, #0f3d22 0%, #1a6b3c 50%, #1e7a43 100%)' }}>
-        <div className="px-6 pt-7 pb-5 border-b border-white/[0.12]">
-          <div className="flex items-center gap-3 mb-1.5">
-            <PharmacyLogo size={48} />
-            <div>
-              <h1 className="font-display text-[17px] text-white leading-tight tracking-wide">Madalena Bal</h1>
-              <span className="text-[11px] text-white/55 tracking-widest uppercase">Farmácia</span>
-            </div>
+        <div className="px-4 pt-5 pb-4 border-b border-white/[0.12]">
+          <div className="bg-white/95 rounded-xl p-3 mx-0 shadow-[0_4px_16px_rgba(0,0,0,0.20)]">
+            <img
+              src="/logo-madalena-bal.png"
+              alt="Madalena Bal Farmácia"
+              className="w-[180px] h-auto object-contain block mx-auto"
+              style={{ filter: 'drop-shadow(0px 2px 6px rgba(0,0,0,0.25))' }}
+            />
           </div>
-          <div className="mt-2.5 bg-white/[0.08] border border-white/[0.15] rounded-lg px-2.5 py-1.5 text-[10.5px] text-white/60 tracking-wide">
+          <div className="mt-2 bg-white/10 border border-white/20 rounded-lg py-[5px] px-3 text-[11px] text-white/70 text-center mx-0">
             NIF: <b className="text-white/85">5000947253</b>
           </div>
         </div>
@@ -102,9 +102,14 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
 
       <main className="ml-[260px] flex-1 min-h-screen flex flex-col">
         <div className="bg-card border-b border-border px-8 py-[18px] flex justify-between items-center sticky top-0 z-10 shadow-sm">
-          <div>
-            <h2 className="font-display text-[22px] text-primary">{pageTitle}</h2>
-            <p className="text-[13px] text-muted-foreground mt-0.5">{pageSub}</p>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-md bg-white p-[3px] shadow-sm border border-border">
+              <img src="/logo-madalena-bal.png" alt="Logo" className="w-full h-full object-contain" />
+            </div>
+            <div>
+              <h2 className="font-display text-[22px] text-primary">{pageTitle}</h2>
+              <p className="text-[13px] text-muted-foreground mt-0.5">{pageSub}</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <ConnectionBadge />
