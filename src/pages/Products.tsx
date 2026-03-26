@@ -44,18 +44,17 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
   };
 
   const save = () => {
-    const cod = form.cod.trim().toUpperCase();
-    const nome = form.nome.trim();
-    const preco = parseFloat(form.preco);
+    const cod = form.cod.trim().toUpperCase() || `PRD${Date.now().toString().slice(-6)}`;
+    const nome = form.nome.trim() || 'Produto sem nome';
+    const preco = parseFloat(form.preco) || 0;
     const custo = parseFloat(form.custo) || 0;
-    const est = parseInt(form.est);
+    const est = parseInt(form.est) || 0;
     const min = parseInt(form.min) || 10;
-    if (!cod || !nome || isNaN(preco) || isNaN(est)) { showToast('Preencha todos os campos obrigatórios!', 'error'); return; }
     if (editId) {
       onUpdate(editId, { cod, nome, cat: form.cat, preco, custo, est, min });
       showToast('Produto atualizado com sucesso!', 'success');
     } else {
-      if (produtos.find(p => p.cod === cod)) { showToast('Código já existe!', 'error'); return; }
+      if (cod && produtos.find(p => p.cod === cod)) { showToast('Código já existe!', 'error'); return; }
       onAdd({ cod, nome, cat: form.cat, preco, custo, est, min });
       showToast('Produto cadastrado!', 'success');
     }
