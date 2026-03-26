@@ -62,7 +62,7 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
         </div>
 
         <nav className="px-3.5 py-4 flex-1 overflow-y-auto">
-          {navItems.map((item) => (
+          {navItems.filter(item => !item.adminOnly || isAdmin).map((item) => (
             <div key={item.key}>
               {item.section && (
                 <div className="text-[10px] font-extrabold uppercase tracking-[1.2px] text-white/35 px-2.5 pt-3 pb-1.5 mt-2">{item.section}</div>
