@@ -34,8 +34,7 @@ export default function FornecedoresPage({ fornecedores, financeiro, onAdd, onUp
   };
 
   const save = () => {
-    const nome = form.nome.trim();
-    if (!nome) { showToast('Informe o nome do fornecedor!', 'error'); return; }
+    const nome = form.nome.trim() || 'Fornecedor sem nome';
     if (editId) {
       onUpdate(editId, { ...form, nome, prazoEntrega: parseInt(form.prazoEntrega) || 3 });
       showToast('Fornecedor atualizado!', 'success');

@@ -34,8 +34,7 @@ export default function ClientesPage({ clientes, vendas, onAdd, onUpdate, onDele
   };
 
   const save = () => {
-    const nome = form.nome.trim();
-    if (!nome) { showToast('Informe o nome do cliente!', 'error'); return; }
+    const nome = form.nome.trim() || 'Cliente sem nome';
     if (editId) {
       onUpdate(editId, { ...form, nome });
       showToast('Cliente atualizado!', 'success');

@@ -44,18 +44,17 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
   };
 
   const save = () => {
-    const cod = form.cod.trim().toUpperCase();
-    const nome = form.nome.trim();
-    const preco = parseFloat(form.preco);
+    const cod = form.cod.trim().toUpperCase() || `PRD${Date.now().toString().slice(-6)}`;
+    const nome = form.nome.trim() || 'Produto sem nome';
+    const preco = parseFloat(form.preco) || 0;
     const custo = parseFloat(form.custo) || 0;
-    const est = parseInt(form.est);
+    const est = parseInt(form.est) || 0;
     const min = parseInt(form.min) || 10;
-    if (!cod || !nome || isNaN(preco) || isNaN(est)) { showToast('Preencha todos os campos obrigatórios!', 'error'); return; }
     if (editId) {
       onUpdate(editId, { cod, nome, cat: form.cat, preco, custo, est, min });
       showToast('Produto atualizado com sucesso!', 'success');
     } else {
-      if (produtos.find(p => p.cod === cod)) { showToast('Código já existe!', 'error'); return; }
+      if (cod && produtos.find(p => p.cod === cod)) { showToast('Código já existe!', 'error'); return; }
       onAdd({ cod, nome, cat: form.cat, preco, custo, est, min });
       showToast('Produto cadastrado!', 'success');
     }
@@ -70,16 +69,16 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
 
   const saveEntry = () => {
     const produtoId = parseInt(entry.produtoId);
-    const quantidade = parseInt(entry.quantidade);
-    const custoPorUnidade = parseFloat(entry.custoPorUnidade);
-    if (!produtoId || isNaN(quantidade) || quantidade <= 0 || !entry.lote || !entry.validade || isNaN(custoPorUnidade)) {
-      showToast('Preencha todos os campos obrigatórios!', 'error');
+    const quantidade = parseInt(entry.quantidade) || 0;
+    const custoPorUnidade = parseFloat(entry.custoPorUnidade) || 0;
+    if (!produtoId) {
+      showToast('Selecione um produto!', 'error');
       return;
     }
     onEntradaEstoque({
-      produtoId, fornecedorNome: entry.fornecedorNome, quantidade,
-      lote: entry.lote, validade: entry.validade, custoPorUnidade,
-      notaFiscal: entry.notaFiscal || undefined, dataRecebimento: entry.dataRecebimento,
+      produtoId, fornecedorNome: entry.fornecedorNome || '', quantidade,
+      lote: entry.lote || 'S/L', validade: entry.validade || '', custoPorUnidade,
+      notaFiscal: entry.notaFiscal || undefined, dataRecebimento: entry.dataRecebimento || new Date().toISOString().split('T')[0],
       observacoes: entry.observacoes || undefined,
     });
     showToast('Estoque atualizado com sucesso!', 'success');
@@ -171,7 +170,7 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
           <div className="w-11 h-11 bg-[hsl(148,40%,93%)] rounded-xl flex items-center justify-center text-primary"><Package className="w-[22px] h-[22px]" /></div>
           <div>
             <h3 className="font-display text-xl text-primary">{editId ? 'Editar Produto' : 'Novo Produto'}</h3>
-            <p className="text-[13px] text-muted-foreground mt-0.5">Preencha os dados do produto</p>
+            <p className="text-[13px] text-muted-foreground mt-0.5">Todos os campos são opcionais</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3.5">
