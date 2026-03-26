@@ -50,7 +50,7 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
       <aside className="w-[260px] fixed h-screen flex flex-col z-20" style={{ background: 'linear-gradient(180deg, #0f3d22 0%, #1a6b3c 50%, #1e7a43 100%)' }}>
         <div className="px-6 pt-7 pb-5 border-b border-white/[0.12]">
           <div className="flex items-center gap-3 mb-1.5">
-            <PharmacyLogo />
+            <PharmacyLogo size={48} />
             <div>
               <h1 className="font-display text-[17px] text-white leading-tight tracking-wide">Madalena Bal</h1>
               <span className="text-[11px] text-white/55 tracking-widest uppercase">Farmácia</span>
