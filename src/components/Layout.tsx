@@ -97,8 +97,8 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
       <main className="ml-[260px] flex-1 min-h-screen flex flex-col">
         <div className="bg-card border-b border-border px-8 py-[18px] flex justify-between items-center sticky top-0 z-10 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-md bg-white p-[3px] shadow-sm border border-border">
-              <img src="/logo-madalena-bal.png" alt="Logo" className="w-full h-full object-contain" />
+            <div className="w-9 h-9 rounded-md overflow-hidden shadow-sm border border-border">
+              <PharmacyLogoSVG width={36} />
             </div>
             <div>
               <h2 className="font-display text-[22px] text-primary">{pageTitle}</h2>

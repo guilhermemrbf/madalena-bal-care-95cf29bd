@@ -676,7 +676,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
           <div id="recibo-print" className="bg-background border border-border rounded-xl p-5 font-mono text-[12px] text-center my-3 shadow-inner">
             {/* Store info */}
             <div className="pb-3 border-b-2 border-dashed border-border mb-3">
-              <img src="/logo-madalena-bal.png" alt="Madalena Bal Farmácia" className="w-20 h-auto block mx-auto mb-2 object-contain" />
+              <PharmacyLogoSVG width={140} />
               <p className="text-[10px] text-muted-foreground leading-relaxed">NIF: 5000947253<br />Luanda — Angola</p>
             </div>
 
