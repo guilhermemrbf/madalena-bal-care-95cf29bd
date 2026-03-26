@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import PharmacyLogoSVG from '@/components/PharmacyLogoSVG';
+import PharmacyLogo from '@/components/PharmacyLogo';
 import { LogIn, Eye, EyeOff, Loader2, ShieldCheck, UserRound } from 'lucide-react';
 
 const roles = [
@@ -30,11 +30,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #f3f6f4 0%, #eaf5ee 50%, #e0efe4 100%)' }}>
       <div className="w-full max-w-[440px]">
         {/* Logo */}
-         <div className="text-center mb-8">
+        <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <PharmacyLogoSVG width={200} />
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0f3d22, #1a6b3c)' }}>
+              <PharmacyLogo />
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground font-semibold tracking-wider uppercase mt-1">Sistema de Gestão</p>
+          <h1 className="font-display text-2xl text-primary">Madalena Bal</h1>
+          <p className="text-sm text-muted-foreground font-semibold tracking-wider uppercase mt-1">Sistema de Gestão — Farmácia</p>
         </div>
 
         {/* Card */}

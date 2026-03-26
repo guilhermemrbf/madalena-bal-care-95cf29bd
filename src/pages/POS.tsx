@@ -4,7 +4,6 @@ import { Product, CartItem, Sale, Cliente, fmt } from '@/store/useStore';
 import { useToastCustom } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import BarcodeScanner from '@/components/BarcodeScanner';
-import PharmacyLogoSVG from '@/components/PharmacyLogoSVG';
 import Barcode from 'react-barcode';
 
 interface Props {
@@ -676,7 +675,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
           <div id="recibo-print" className="bg-background border border-border rounded-xl p-5 font-mono text-[12px] text-center my-3 shadow-inner">
             {/* Store info */}
             <div className="pb-3 border-b-2 border-dashed border-border mb-3">
-              <PharmacyLogoSVG width={140} />
+              <h4 className="font-display text-[16px] text-primary font-bold mb-0.5">Madalena Bal Farmácia</h4>
               <p className="text-[10px] text-muted-foreground leading-relaxed">NIF: 5000947253<br />Luanda — Angola</p>
             </div>
 
