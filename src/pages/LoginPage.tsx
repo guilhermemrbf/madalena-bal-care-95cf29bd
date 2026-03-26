@@ -1,35 +1,22 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import PharmacyLogo from '@/components/PharmacyLogo';
-import { LogIn, UserPlus, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
-  const { signIn, signUp } = useAuth();
-  const [isRegister, setIsRegister] = useState(false);
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [cargo, setCargo] = useState('Atendente');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setLoading(true);
-
-    if (isRegister) {
-      if (!fullName.trim()) { setError('Informe o nome completo'); setLoading(false); return; }
-      const { error: err } = await signUp(email, password, fullName.trim(), cargo);
-      if (err) setError(err);
-      else setSuccess('Conta criada! Verifique seu e-mail para confirmar o cadastro.');
-    } else {
-      const { error: err } = await signIn(email, password);
-      if (err) setError(err === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : err);
-    }
+    const { error: err } = await signIn(email, password);
+    if (err) setError(err === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : err);
     setLoading(false);
   };
 
@@ -49,36 +36,10 @@ export default function LoginPage() {
 
         {/* Form card */}
         <div className="bg-card rounded-2xl p-8 shadow-[0_8px_40px_rgba(26,107,60,0.12)] border border-border">
-          <h2 className="font-display text-xl text-primary mb-1">{isRegister ? 'Criar Conta' : 'Entrar no Sistema'}</h2>
-          <p className="text-sm text-muted-foreground mb-6">{isRegister ? 'Cadastro de novo funcionário' : 'Acesse com suas credenciais'}</p>
+          <h2 className="font-display text-xl text-primary mb-1">Entrar no Sistema</h2>
+          <p className="text-sm text-muted-foreground mb-6">Acesse com suas credenciais</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isRegister && (
-              <>
-                <div>
-                  <label className="block text-[11.5px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Nome Completo</label>
-                  <input
-                    value={fullName} onChange={e => setFullName(e.target.value)} required
-                    className="w-full py-3 px-3.5 border-[1.5px] border-border rounded-xl font-body text-sm outline-none bg-background focus:border-primary focus:bg-card focus:shadow-[0_0_0_3px_rgba(26,107,60,0.08)] transition-all"
-                    placeholder="Ex: Maria Silva"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11.5px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Cargo / Função</label>
-                  <select
-                    value={cargo} onChange={e => setCargo(e.target.value)}
-                    className="w-full py-3 px-3.5 border-[1.5px] border-border rounded-xl font-body text-sm outline-none bg-background focus:border-primary focus:bg-card transition-all"
-                  >
-                    <option>Atendente</option>
-                    <option>Farmacêutico(a)</option>
-                    <option>Caixa</option>
-                    <option>Gerente</option>
-                    <option>Proprietário(a)</option>
-                  </select>
-                </div>
-              </>
-            )}
-
             <div>
               <label className="block text-[11.5px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">E-mail</label>
               <input
@@ -107,30 +68,25 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-            {success && (
-              <div className="bg-[hsl(148,40%,93%)] text-primary rounded-xl px-4 py-3 text-sm font-bold">
-                {success}
-              </div>
-            )}
 
             <button
               type="submit" disabled={loading}
               className="w-full py-3.5 rounded-xl font-bold text-[15px] text-primary-foreground transition-all disabled:opacity-60 flex items-center justify-center gap-2"
               style={{ background: 'linear-gradient(135deg, hsl(148,61%,26%), hsl(90,60%,41%))' }}
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : isRegister ? <UserPlus className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
-              {loading ? 'Aguarde...' : isRegister ? 'Criar Conta' : 'Entrar'}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
+              {loading ? 'Aguarde...' : 'Entrar'}
             </button>
           </form>
 
           <div className="mt-5 pt-5 border-t border-border text-center">
-            <button onClick={() => { setIsRegister(!isRegister); setError(''); setSuccess(''); }} className="text-sm font-semibold text-primary hover:underline">
-              {isRegister ? '← Já tenho conta, fazer login' : 'Criar conta de funcionário →'}
-            </button>
+            <p className="text-xs text-muted-foreground">
+              Contacte o proprietário para obter as suas credenciais de acesso
+            </p>
           </div>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">© 2026 Madalena Bal Farmácia · NIF 5000947253</p>
+        <p className="text-center text-xs text-muted-foreground mt-6">© 2026 Madalena Bal Farmácia · Luanda, Angola</p>
       </div>
     </div>
   );
