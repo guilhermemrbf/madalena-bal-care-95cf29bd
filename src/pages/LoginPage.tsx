@@ -32,7 +32,7 @@ export default function LoginPage() {
         {/* Logo */}
          <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <PharmacyLogo size={90} />
+            <img src="/logo-madalena-bal.png" alt="Madalena Bal Farmácia" className="w-[200px] h-auto object-contain" style={{ filter: 'drop-shadow(0px 2px 6px rgba(0,0,0,0.15))' }} />
           </div>
           <h1 className="font-display text-2xl text-primary">Madalena Bal</h1>
           <p className="text-sm text-muted-foreground font-semibold tracking-wider uppercase mt-1">Sistema de Gestão — Farmácia</p>
