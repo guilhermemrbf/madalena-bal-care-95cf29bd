@@ -33,12 +33,12 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
 
   const navItems = [
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'Menu Principal', adminOnly: false },
-    { key: 'produtos', label: 'Produtos / Estoque', icon: Package, section: null, adminOnly: true, badge: criticalCount },
     { key: 'caixa', label: 'Caixa — PDV', icon: CreditCard, section: null, adminOnly: false },
+    { key: 'vendas', label: 'Histórico de Vendas', icon: ClipboardList, section: null, adminOnly: false },
+    { key: 'clientes', label: 'Clientes', icon: UserCheck, section: null, adminOnly: false },
     { key: 'lotes', label: 'Validades e Lotes', icon: Calendar, section: null, adminOnly: false, badge: criticalLotesCount },
-    { key: 'clientes', label: 'Clientes', icon: UserCheck, section: 'Cadastros', adminOnly: false },
+    { key: 'produtos', label: 'Produtos / Estoque', icon: Package, section: 'Gestão', adminOnly: true, badge: criticalCount },
     { key: 'fornecedores', label: 'Fornecedores', icon: Truck, section: null, adminOnly: true },
-    { key: 'vendas', label: 'Histórico de Vendas', icon: ClipboardList, section: 'Relatórios', adminOnly: false },
     { key: 'relatorio', label: 'Relatórios', icon: Activity, section: null, adminOnly: true },
     { key: 'financeiro', label: 'Financeiro', icon: DollarSign, section: null, adminOnly: true },
     ...(isAdmin ? [{ key: 'usuarios', label: 'Funcionários', icon: Users, section: 'Administração', adminOnly: true, badge: 0 }] : []),
