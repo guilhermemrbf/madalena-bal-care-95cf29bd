@@ -1,6 +1,5 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { LayoutDashboard, Package, CreditCard, ClipboardList, Activity, Users, LogOut, Calendar, UserCheck, Truck, DollarSign } from 'lucide-react';
-import PharmacyLogo from './PharmacyLogo';
 import ConnectionStatus, { ConnectionBadge } from './ConnectionStatus';
 
 interface LayoutProps {
