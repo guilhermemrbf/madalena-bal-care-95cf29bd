@@ -69,16 +69,16 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
 
   const saveEntry = () => {
     const produtoId = parseInt(entry.produtoId);
-    const quantidade = parseInt(entry.quantidade);
-    const custoPorUnidade = parseFloat(entry.custoPorUnidade);
-    if (!produtoId || isNaN(quantidade) || quantidade <= 0 || !entry.lote || !entry.validade || isNaN(custoPorUnidade)) {
-      showToast('Preencha todos os campos obrigatórios!', 'error');
+    const quantidade = parseInt(entry.quantidade) || 0;
+    const custoPorUnidade = parseFloat(entry.custoPorUnidade) || 0;
+    if (!produtoId) {
+      showToast('Selecione um produto!', 'error');
       return;
     }
     onEntradaEstoque({
-      produtoId, fornecedorNome: entry.fornecedorNome, quantidade,
-      lote: entry.lote, validade: entry.validade, custoPorUnidade,
-      notaFiscal: entry.notaFiscal || undefined, dataRecebimento: entry.dataRecebimento,
+      produtoId, fornecedorNome: entry.fornecedorNome || '', quantidade,
+      lote: entry.lote || 'S/L', validade: entry.validade || '', custoPorUnidade,
+      notaFiscal: entry.notaFiscal || undefined, dataRecebimento: entry.dataRecebimento || new Date().toISOString().split('T')[0],
       observacoes: entry.observacoes || undefined,
     });
     showToast('Estoque atualizado com sucesso!', 'success');
