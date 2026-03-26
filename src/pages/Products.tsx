@@ -170,7 +170,7 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
           <div className="w-11 h-11 bg-[hsl(148,40%,93%)] rounded-xl flex items-center justify-center text-primary"><Package className="w-[22px] h-[22px]" /></div>
           <div>
             <h3 className="font-display text-xl text-primary">{editId ? 'Editar Produto' : 'Novo Produto'}</h3>
-            <p className="text-[13px] text-muted-foreground mt-0.5">Preencha os dados do produto</p>
+            <p className="text-[13px] text-muted-foreground mt-0.5">Todos os campos são opcionais</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3.5">
