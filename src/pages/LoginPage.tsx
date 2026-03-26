@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import PharmacyLogoSVG from '@/components/PharmacyLogoSVG';
 import { LogIn, Eye, EyeOff, Loader2, ShieldCheck, UserRound } from 'lucide-react';
 
 const roles = [
