@@ -34,6 +34,12 @@
     --blue-light: 210 50% 94%;
     --text-2: 150 20% 25%;
     --sidebar-w: 260px;
+
+    --shadow-card: 0 1px 3px 0 hsl(152 40% 9% / 0.04), 0 4px 12px -2px hsl(152 40% 9% / 0.06);
+    --shadow-card-hover: 0 8px 30px -4px hsl(148 61% 26% / 0.12), 0 2px 8px -2px hsl(152 40% 9% / 0.06);
+    --shadow-elevated: 0 12px 40px -8px hsl(148 61% 26% / 0.15), 0 4px 16px -4px hsl(152 40% 9% / 0.08);
+    --gradient-primary: linear-gradient(135deg, hsl(148 61% 26%), hsl(90 60% 41%));
+    --gradient-dark: linear-gradient(145deg, hsl(152 65% 12%), hsl(148 61% 22%), hsl(152 50% 28%));
   }
 }
 
@@ -57,4 +63,68 @@
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Premium card styles */
+.card-premium {
+  @apply bg-card rounded-2xl border border-border;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.card-premium:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+/* Glass morphism */
+.glass {
+  background: hsl(0 0% 100% / 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Stagger animation for children */
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-stagger > * {
+  animation: slide-up-fade 0.4s ease-out both;
+}
+.animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.animate-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.animate-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.animate-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.animate-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.animate-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.animate-stagger > *:nth-child(8) { animation-delay: 420ms; }
+
+/* Shimmer gradient for loading/accent */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, hsl(148 61% 26% / 0.06) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+/* Table row hover with subtle left border accent */
+.table-row-hover {
+  @apply border-t border-border transition-all duration-200;
+  border-left: 3px solid transparent;
+}
+.table-row-hover:hover {
+  @apply bg-primary/[0.02];
+  border-left-color: hsl(var(--primary));
+}
+
+/* Smooth gradient text */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

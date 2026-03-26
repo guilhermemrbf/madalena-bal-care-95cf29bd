@@ -101,17 +101,17 @@ export default function Layout({ children, currentPage, onNavigate, pageTitle, p
       </aside>
 
       <main className="ml-[260px] flex-1 min-h-screen flex flex-col">
-        <div className="bg-card border-b border-border px-8 py-[18px] flex justify-between items-center sticky top-0 z-10 shadow-sm">
+        <div className="glass border-b border-border px-8 py-[18px] flex justify-between items-center sticky top-0 z-10" style={{ boxShadow: '0 1px 8px hsl(152 40% 9% / 0.04)' }}>
           <div>
-            <h2 className="font-display text-[22px] text-primary">{pageTitle}</h2>
+            <h2 className="font-display text-[22px] text-foreground">{pageTitle}</h2>
             <p className="text-[13px] text-muted-foreground mt-0.5">{pageSub}</p>
           </div>
           <div className="flex items-center gap-3">
             <ConnectionBadge />
             {isAdmin && <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[hsl(148,40%,93%)] text-primary border border-border">ADMIN</span>}
-            <div className="text-xs text-muted-foreground bg-background border border-border rounded-full px-3.5 py-1.5">{clock}</div>
+            <div className="text-xs text-muted-foreground bg-card border border-border rounded-full px-3.5 py-1.5">{clock}</div>
             <div className="flex items-center gap-2 bg-accent-light border border-border rounded-full py-[7px] px-3.5 pr-4 text-[13px] font-bold text-primary">
-              <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white text-xs font-extrabold">{userInitials || 'MB'}</div>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-primary-foreground text-xs font-extrabold" style={{ background: 'var(--gradient-primary)' }}>{userInitials || 'MB'}</div>
               {userCargo || 'Funcionário'}
             </div>
           </div>
