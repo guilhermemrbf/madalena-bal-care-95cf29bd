@@ -4,6 +4,7 @@ import { Product, CartItem, Sale, Cliente, fmt } from '@/store/useStore';
 import { useToastCustom } from '@/components/Toast';
 import Modal from '@/components/Modal';
 import BarcodeScanner from '@/components/BarcodeScanner';
+import PharmacyLogoSVG from '@/components/PharmacyLogoSVG';
 import Barcode from 'react-barcode';
 
 interface Props {
