@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import PharmacyLogo from '@/components/PharmacyLogo';
 import { LogIn, Eye, EyeOff, Loader2, ShieldCheck, UserRound } from 'lucide-react';
 
 const roles = [
