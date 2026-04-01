@@ -77,9 +77,9 @@ export default function SetupPage({ onComplete }: SetupPageProps) {
           </div>
 
           {!isOnline && (
-            <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
-              <WifiOff className="w-4 h-4 text-destructive flex-shrink-0" />
-              <p className="text-xs text-destructive font-bold">Sem conexão. A criação da conta requer internet.</p>
+            <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200">
+              <WifiOff className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <p className="text-xs text-amber-700"><strong>Modo Offline:</strong> A conta será criada localmente e sincronizada quando houver internet.</p>
             </div>
           )}
 
