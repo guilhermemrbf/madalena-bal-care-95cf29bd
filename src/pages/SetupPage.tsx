@@ -132,7 +132,7 @@ export default function SetupPage({ onComplete }: SetupPageProps) {
             )}
 
             <button
-              type="submit" disabled={loading || !isOnline}
+              type="submit" disabled={loading}
               className="w-full py-3.5 rounded-xl font-bold text-[15px] text-primary-foreground transition-all disabled:opacity-60 flex items-center justify-center gap-2"
               style={{ background: 'linear-gradient(135deg, hsl(148,61%,26%), hsl(90,60%,41%))' }}
             >
