@@ -10,10 +10,12 @@ import SalesHistory from '@/pages/SalesHistory';
 import DailyReport from '@/pages/DailyReport';
 import UsersPage from '@/pages/UsersPage';
 import LoginPage from '@/pages/LoginPage';
+import SetupPage from '@/pages/SetupPage';
 import LotesValidades from '@/pages/LotesValidades';
 import ClientesPage from '@/pages/ClientesPage';
 import FornecedoresPage from '@/pages/FornecedoresPage';
 import FinanceiroPage from '@/pages/FinanceiroPage';
+import { isSetupComplete, markSetupComplete } from '@/lib/offlineAuth';
 import { Loader2, Shield } from 'lucide-react';
 
 const pageMeta: Record<string, { title: string; sub: string }> = {
@@ -42,8 +44,9 @@ function AccessDenied() {
 }
 
 const Index = () => {
-  const { user, profile, role, loading, isAdmin, signOut } = useAuth();
+  const { user, profile, role, loading, isAdmin, isOfflineSession, signOut } = useAuth();
   const [page, setPage] = useState('dashboard');
+  const [setupDone, setSetupDone] = useState(isSetupComplete());
   const store = useStore();
 
   if (loading) {
@@ -51,6 +54,16 @@ const Index = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  // Show setup page if no admin account has been created yet
+  if (!setupDone && !user) {
+    return (
+      <SetupPage onComplete={() => {
+        markSetupComplete();
+        setSetupDone(true);
+      }} />
     );
   }
 
