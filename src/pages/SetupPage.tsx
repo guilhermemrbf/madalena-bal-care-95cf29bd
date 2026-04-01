@@ -23,11 +23,6 @@ export default function SetupPage({ onComplete }: SetupPageProps) {
     e.preventDefault();
     setError('');
 
-    if (!isOnline) {
-      setError('É necessário estar online para criar a conta inicial. Conecte-se à internet e tente novamente.');
-      return;
-    }
-
     if (password !== confirmPw) {
       setError('As senhas não coincidem');
       return;

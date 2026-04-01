@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { cacheUserForOffline, offlineLogin, markSetupComplete, isSetupComplete } from '@/lib/offlineAuth';
+import { cacheUserForOffline, offlineLogin, markSetupComplete } from '@/lib/offlineAuth';
 
 interface Profile {
   full_name: string;
@@ -40,7 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isOfflineSession, setIsOfflineSession] = useState(false);
 
-  // Fetch profile and role
   const fetchUserData = async (userId: string) => {
     const [profileRes, roleRes] = await Promise.all([
       supabase.from('profiles').select('full_name, cargo, avatar_initials').eq('user_id', userId).single(),
@@ -52,23 +51,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { profile: profileRes.data, role: userRole };
   };
 
-  // Restore offline session on load
-  useEffect(() => {
+  // Try to restore offline session from localStorage
+  const restoreOfflineSession = useCallback(() => {
     try {
       const cached = localStorage.getItem(OFFLINE_SESSION_KEY);
-      if (cached && !navigator.onLine) {
+      if (cached) {
         const data = JSON.parse(cached);
         setProfile(data.profile);
         setRole(data.role);
         setUser({ id: data.userId, email: data.email } as User);
         setIsOfflineSession(true);
         setLoading(false);
-        return;
+        return true;
       }
     } catch {}
+    return false;
+  }, []);
 
-    // Set up auth listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sess) => {
+  useEffect(() => {
+    // If offline, restore from cache immediately
+    if (!navigator.onLine) {
+      if (restoreOfflineSession()) return;
+      // No cached session and offline — just stop loading
+      setLoading(false);
+      return;
+    }
+
+    // Online flow
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, sess) => {
       setSession(sess);
       setUser(sess?.user ?? null);
       setIsOfflineSession(false);
@@ -81,7 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    // THEN check existing session
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess);
       setUser(sess?.user ?? null);
@@ -92,31 +101,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [restoreOfflineSession]);
 
   const signIn = async (email: string, password: string) => {
     // Try online first
     if (navigator.onLine) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        return { error: error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : error.message };
-      }
-      
-      // Cache for offline use
-      if (data.user) {
-        const userData = await fetchUserData(data.user.id);
-        if (userData.profile) {
-          await cacheUserForOffline(email, password, data.user.id, userData.profile, userData.role as 'admin' | 'funcionario');
-          // Also save session data for offline restore
-          localStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify({
-            userId: data.user.id,
-            email,
-            profile: userData.profile,
-            role: userData.role,
-          }));
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          return { error: error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : error.message };
         }
+        if (data.user) {
+          const userData = await fetchUserData(data.user.id);
+          if (userData.profile) {
+            await cacheUserForOffline(email, password, data.user.id, userData.profile, userData.role as 'admin' | 'funcionario');
+            localStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify({
+              userId: data.user.id, email,
+              profile: userData.profile, role: userData.role,
+            }));
+          }
+        }
+        return { error: null };
+      } catch {
+        // Network error — fall through to offline
       }
-      return { error: null };
     }
 
     // Offline login
@@ -125,17 +133,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: result.error ?? 'Erro no login offline' };
     }
 
-    // Set offline session
     setUser({ id: result.user.userId, email: result.user.email } as User);
     setProfile(result.user.profile);
     setRole(result.user.role);
     setIsOfflineSession(true);
-    
+
     localStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify({
-      userId: result.user.userId,
-      email: result.user.email,
-      profile: result.user.profile,
-      role: result.user.role,
+      userId: result.user.userId, email: result.user.email,
+      profile: result.user.profile, role: result.user.role,
     }));
 
     return { error: null };
@@ -143,31 +148,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName: string, cargo: string) => {
     const initials = fullName.trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'MB';
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    if (error) return { error: error.message };
+    const profileData = { full_name: fullName, cargo, avatar_initials: initials };
+    const userId = `offline-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-    // Update profile with cargo and initials
-    if (data.user) {
-      await supabase.from('profiles').update({ cargo, avatar_initials: initials }).eq('user_id', data.user.id);
-      
-      // Cache for offline
-      const profileData = { full_name: fullName, cargo, avatar_initials: initials };
-      await cacheUserForOffline(email, password, data.user.id, profileData, 'admin');
-      markSetupComplete();
+    // Try online signup
+    if (navigator.onLine) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
+        });
+        if (!error && data.user) {
+          await supabase.from('profiles').update({ cargo, avatar_initials: initials }).eq('user_id', data.user.id);
+          await cacheUserForOffline(email, password, data.user.id, profileData, 'admin');
+          markSetupComplete();
+          // Auto-login after signup
+          setUser({ id: data.user.id, email } as User);
+          setProfile(profileData);
+          setRole('admin');
+          localStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify({
+            userId: data.user.id, email, profile: profileData, role: 'admin',
+          }));
+          return { error: null };
+        }
+        if (error) return { error: error.message };
+      } catch {
+        // Network error — fall through to offline
+      }
     }
+
+    // Offline signup — store locally only
+    await cacheUserForOffline(email, password, userId, profileData, 'admin');
+    markSetupComplete();
+
+    setUser({ id: userId, email } as User);
+    setProfile(profileData);
+    setRole('admin');
+    setIsOfflineSession(true);
+
+    localStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify({
+      userId, email, profile: profileData, role: 'admin',
+    }));
+
     return { error: null };
   };
 
   const signOut = async () => {
     if (!isOfflineSession) {
-      await supabase.auth.signOut();
+      try { await supabase.auth.signOut(); } catch {}
     }
     localStorage.removeItem(OFFLINE_SESSION_KEY);
     setUser(null);
@@ -181,8 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={{
       user, session, profile, role, loading,
       isAdmin: role === 'admin',
-      isOfflineSession,
-      signIn, signUp, signOut,
+      isOfflineSession, signIn, signUp, signOut,
     }}>
       {children}
     </AuthContext.Provider>
