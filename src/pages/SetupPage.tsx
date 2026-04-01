@@ -23,11 +23,6 @@ export default function SetupPage({ onComplete }: SetupPageProps) {
     e.preventDefault();
     setError('');
 
-    if (!isOnline) {
-      setError('É necessário estar online para criar a conta inicial. Conecte-se à internet e tente novamente.');
-      return;
-    }
-
     if (password !== confirmPw) {
       setError('As senhas não coincidem');
       return;
@@ -82,9 +77,9 @@ export default function SetupPage({ onComplete }: SetupPageProps) {
           </div>
 
           {!isOnline && (
-            <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
-              <WifiOff className="w-4 h-4 text-destructive flex-shrink-0" />
-              <p className="text-xs text-destructive font-bold">Sem conexão. A criação da conta requer internet.</p>
+            <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200">
+              <WifiOff className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <p className="text-xs text-amber-700"><strong>Modo Offline:</strong> A conta será criada localmente e sincronizada quando houver internet.</p>
             </div>
           )}
 
@@ -137,7 +132,7 @@ export default function SetupPage({ onComplete }: SetupPageProps) {
             )}
 
             <button
-              type="submit" disabled={loading || !isOnline}
+              type="submit" disabled={loading}
               className="w-full py-3.5 rounded-xl font-bold text-[15px] text-primary-foreground transition-all disabled:opacity-60 flex items-center justify-center gap-2"
               style={{ background: 'linear-gradient(135deg, hsl(148,61%,26%), hsl(90,60%,41%))' }}
             >
