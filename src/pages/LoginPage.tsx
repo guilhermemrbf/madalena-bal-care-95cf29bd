@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import PharmacyLogo from '@/components/PharmacyLogo';
-import { LogIn, Eye, EyeOff, Loader2, ShieldCheck, UserRound } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Loader2, ShieldCheck, UserRound, Wifi, WifiOff } from 'lucide-react';
 
 const roles = [
   { id: 'admin', label: 'Proprietário', icon: ShieldCheck, desc: 'Acesso total ao sistema' },
@@ -10,6 +11,7 @@ const roles = [
 
 export default function LoginPage() {
   const { signIn } = useAuth();
+  const { isOnline } = useOnlineStatus();
   const [selectedRole, setSelectedRole] = useState<'admin' | 'funcionario' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +42,12 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground font-semibold tracking-wider uppercase mt-1">Sistema de Gestão — Farmácia</p>
         </div>
 
+        {/* Connection status */}
+        <div className={`flex items-center justify-center gap-1.5 text-xs mb-4 px-3 py-1.5 rounded-full mx-auto w-fit ${isOnline ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+          {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
+          {isOnline ? 'Online' : 'Modo Offline'}
+        </div>
+
         {/* Card */}
         <div className="bg-card rounded-2xl p-8 shadow-[0_8px_40px_rgba(26,107,60,0.12)] border border-border">
           {!selectedRole ? (
@@ -67,6 +75,12 @@ export default function LoginPage() {
                   );
                 })}
               </div>
+
+              {!isOnline && (
+                <div className="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-700">
+                  <strong>Modo Offline:</strong> Use as credenciais já salvas no dispositivo. O primeiro login deve ser feito online.
+                </div>
+              )}
 
               <div className="mt-5 pt-5 border-t border-border text-center">
                 <p className="text-xs text-muted-foreground">
