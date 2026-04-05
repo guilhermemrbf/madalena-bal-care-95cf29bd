@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { addToQueue } from './syncQueue';
 
 export interface Product {
@@ -93,14 +94,14 @@ export interface Conta {
 }
 
 const defaultProducts: Product[] = [
-  { id: 1, cod: 'MED001', nome: 'Dipirona 500mg — cx 10 comp.', cat: 'Medicamentos', preco: 4.90, custo: 2.50, est: 120, min: 20 },
-  { id: 2, cod: 'MED002', nome: 'Amoxicilina 500mg — cx 15 cap.', cat: 'Medicamentos', preco: 18.50, custo: 9.00, est: 45, min: 10 },
-  { id: 3, cod: 'MED003', nome: 'Omeprazol 20mg — cx 28 cap.', cat: 'Medicamentos', preco: 12.90, custo: 6.00, est: 8, min: 10 },
-  { id: 4, cod: 'SUP001', nome: 'Vitamina C 1g — fr 30 comp.', cat: 'Suplementos', preco: 22.00, custo: 12.00, est: 60, min: 15 },
-  { id: 5, cod: 'HIG001', nome: 'Shampoo Anticaspa 400ml', cat: 'Higiene', preco: 16.90, custo: 9.00, est: 30, min: 5 },
-  { id: 6, cod: 'MED004', nome: 'Ibuprofeno 600mg — cx 20 comp.', cat: 'Medicamentos', preco: 8.50, custo: 4.00, est: 3, min: 10 },
-  { id: 7, cod: 'BEL001', nome: 'Protetor Solar FPS 50 — 120ml', cat: 'Beleza', preco: 34.90, custo: 18.00, est: 22, min: 5 },
-  { id: 8, cod: 'SUP002', nome: 'Ômega 3 — fr 60 cáps.', cat: 'Suplementos', preco: 45.00, custo: 22.00, est: 18, min: 5 },
+  { id: '1', cod: 'MED001', nome: 'Dipirona 500mg — cx 10 comp.', cat: 'Medicamentos', preco: 4.90, custo: 2.50, est: 120, min: 20 },
+  { id: '2', cod: 'MED002', nome: 'Amoxicilina 500mg — cx 15 cap.', cat: 'Medicamentos', preco: 18.50, custo: 9.00, est: 45, min: 10 },
+  { id: '3', cod: 'MED003', nome: 'Omeprazol 20mg — cx 28 cap.', cat: 'Medicamentos', preco: 12.90, custo: 6.00, est: 8, min: 10 },
+  { id: '4', cod: 'SUP001', nome: 'Vitamina C 1g — fr 30 comp.', cat: 'Suplementos', preco: 22.00, custo: 12.00, est: 60, min: 15 },
+  { id: '5', cod: 'HIG001', nome: 'Shampoo Anticaspa 400ml', cat: 'Higiene', preco: 16.90, custo: 9.00, est: 30, min: 5 },
+  { id: '6', cod: 'MED004', nome: 'Ibuprofeno 600mg — cx 20 comp.', cat: 'Medicamentos', preco: 8.50, custo: 4.00, est: 3, min: 10 },
+  { id: '7', cod: 'BEL001', nome: 'Protetor Solar FPS 50 — 120ml', cat: 'Beleza', preco: 34.90, custo: 18.00, est: 22, min: 5 },
+  { id: '8', cod: 'SUP002', nome: 'Ômega 3 — fr 60 cáps.', cat: 'Suplementos', preco: 45.00, custo: 22.00, est: 18, min: 5 },
 ];
 
 const now = new Date();
@@ -109,20 +110,20 @@ const ago5days = new Date(now.getTime() - 5 * 86400000).toISOString().split('T')
 const in120days = new Date(now.getTime() + 120 * 86400000).toISOString().split('T')[0];
 
 const defaultLotes: Lote[] = [
-  { id: 1, produtoId: 1, produtoNome: 'Dipirona 500mg', fornecedor: 'FarmaDistrib Angola', lote: 'L2024A', quantidade: 50, validade: in10days },
-  { id: 2, produtoId: 2, produtoNome: 'Amoxicilina 500mg', fornecedor: 'MedSupply Lda', lote: 'L2023B', quantidade: 20, validade: ago5days },
-  { id: 3, produtoId: 4, produtoNome: 'Vitamina C 1g', fornecedor: 'FarmaDistrib Angola', lote: 'L2025C', quantidade: 60, validade: in120days },
+  { id: '1', produtoId: '1', produtoNome: 'Dipirona 500mg', fornecedor: 'FarmaDistrib Angola', lote: 'L2024A', quantidade: 50, validade: in10days },
+  { id: '2', produtoId: '2', produtoNome: 'Amoxicilina 500mg', fornecedor: 'MedSupply Lda', lote: 'L2023B', quantidade: 20, validade: ago5days },
+  { id: '3', produtoId: '4', produtoNome: 'Vitamina C 1g', fornecedor: 'FarmaDistrib Angola', lote: 'L2025C', quantidade: 60, validade: in120days },
 ];
 
 const defaultClientes: Cliente[] = [
-  { id: 1, nome: 'Ana Madalena', telefone: '923456789', documento: '', nascimento: '', endereco: '', observacoes: '', pontos: 45, totalGasto: 450, ultimaCompra: '' },
-  { id: 2, nome: 'João Carlos', telefone: '912345678', documento: '', nascimento: '', endereco: '', observacoes: '', pontos: 12, totalGasto: 120, ultimaCompra: '' },
-  { id: 3, nome: 'Maria Luísa', telefone: '934567890', documento: '', nascimento: '', endereco: '', observacoes: '', pontos: 0, totalGasto: 0, ultimaCompra: '' },
+  { id: '1', nome: 'Ana Madalena', telefone: '923456789', documento: '', nascimento: '', endereco: '', observacoes: '', pontos: 45, totalGasto: 450, ultimaCompra: '' },
+  { id: '2', nome: 'João Carlos', telefone: '912345678', documento: '', nascimento: '', endereco: '', observacoes: '', pontos: 12, totalGasto: 120, ultimaCompra: '' },
+  { id: '3', nome: 'Maria Luísa', telefone: '934567890', documento: '', nascimento: '', endereco: '', observacoes: '', pontos: 0, totalGasto: 0, ultimaCompra: '' },
 ];
 
 const defaultFornecedores: Fornecedor[] = [
-  { id: 1, nome: 'FarmaDistrib Angola', nif: '5001234567', telefone: '922111222', email: 'contato@farmadistrib.ao', contato: 'Carlos Silva', endereco: 'Luanda, Angola', prazoEntrega: 3, observacoes: '', ultimaEntrega: '' },
-  { id: 2, nome: 'MedSupply Lda', nif: '5009876543', telefone: '923333444', email: 'vendas@medsupply.ao', contato: 'Maria Santos', endereco: 'Luanda, Angola', prazoEntrega: 5, observacoes: '', ultimaEntrega: '' },
+  { id: '1', nome: 'FarmaDistrib Angola', nif: '5001234567', telefone: '922111222', email: 'contato@farmadistrib.ao', contato: 'Carlos Silva', endereco: 'Luanda, Angola', prazoEntrega: 3, observacoes: '', ultimaEntrega: '' },
+  { id: '2', nome: 'MedSupply Lda', nif: '5009876543', telefone: '923333444', email: 'vendas@medsupply.ao', contato: 'Maria Santos', endereco: 'Luanda, Angola', prazoEntrega: 5, observacoes: '', ultimaEntrega: '' },
 ];
 
 function loadFromLS<T>(key: string, fallback: T): T {
@@ -151,7 +152,7 @@ export function useStore() {
   useEffect(() => { localStorage.setItem('mb_contas_pagar', JSON.stringify(contasPagar)); }, [contasPagar]);
   useEffect(() => { localStorage.setItem('mb_contas_receber', JSON.stringify(contasReceber)); }, [contasReceber]);
 
-  const genId = () => Date.now() + Math.floor(Math.random() * 9999);
+  const genId = () => crypto.randomUUID();
 
   const addProduct = useCallback((p: Omit<Product, 'id'>) => {
     const newProduct = { ...p, id: genId() };
@@ -159,12 +160,12 @@ export function useStore() {
     if (!navigator.onLine) addToQueue('create_product', newProduct as unknown as Record<string, unknown>);
   }, []);
 
-  const updateProduct = useCallback((id: number, data: Partial<Product>) => {
+  const updateProduct = useCallback((id: string, data: Partial<Product>) => {
     setProdutos(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
     if (!navigator.onLine) addToQueue('update_product', { id, ...data } as Record<string, unknown>);
   }, []);
 
-  const deleteProduct = useCallback((id: number) => {
+  const deleteProduct = useCallback((id: string) => {
     setProdutos(prev => prev.filter(p => p.id !== id));
     if (!navigator.onLine) addToQueue('delete_product', { id });
   }, []);
@@ -180,7 +181,7 @@ export function useStore() {
     setFinanceiro(prev => [...prev, {
       id: genId(),
       data: sale.data,
-      descricao: `Venda #${newSale.id.toString().slice(-5)}`,
+      descricao: `Venda #${newSale.id.slice(-5)}`,
       tipo: 'entrada',
       categoria: 'Venda',
       valor: sale.total,
@@ -210,10 +211,10 @@ export function useStore() {
     setClientes(prev => [...prev, nc]);
     return nc;
   }, []);
-  const updateCliente = useCallback((id: number, data: Partial<Cliente>) => {
+  const updateCliente = useCallback((id: string, data: Partial<Cliente>) => {
     setClientes(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
   }, []);
-  const deleteCliente = useCallback((id: number) => {
+  const deleteCliente = useCallback((id: string) => {
     setClientes(prev => prev.filter(c => c.id !== id));
   }, []);
 
@@ -223,10 +224,10 @@ export function useStore() {
     setFornecedores(prev => [...prev, nf]);
     return nf;
   }, []);
-  const updateFornecedor = useCallback((id: number, data: Partial<Fornecedor>) => {
+  const updateFornecedor = useCallback((id: string, data: Partial<Fornecedor>) => {
     setFornecedores(prev => prev.map(f => f.id === id ? { ...f, ...data } : f));
   }, []);
-  const deleteFornecedor = useCallback((id: number) => {
+  const deleteFornecedor = useCallback((id: string) => {
     setFornecedores(prev => prev.filter(f => f.id !== id));
   }, []);
 
@@ -239,26 +240,26 @@ export function useStore() {
   const addContaPagar = useCallback((c: Omit<Conta, 'id'>) => {
     setContasPagar(prev => [...prev, { ...c, id: genId() }]);
   }, []);
-  const updateContaPagar = useCallback((id: number, data: Partial<Conta>) => {
+  const updateContaPagar = useCallback((id: string, data: Partial<Conta>) => {
     setContasPagar(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
   }, []);
-  const deleteContaPagar = useCallback((id: number) => {
+  const deleteContaPagar = useCallback((id: string) => {
     setContasPagar(prev => prev.filter(c => c.id !== id));
   }, []);
 
   const addContaReceber = useCallback((c: Omit<Conta, 'id'>) => {
     setContasReceber(prev => [...prev, { ...c, id: genId() }]);
   }, []);
-  const updateContaReceber = useCallback((id: number, data: Partial<Conta>) => {
+  const updateContaReceber = useCallback((id: string, data: Partial<Conta>) => {
     setContasReceber(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
   }, []);
-  const deleteContaReceber = useCallback((id: number) => {
+  const deleteContaReceber = useCallback((id: string) => {
     setContasReceber(prev => prev.filter(c => c.id !== id));
   }, []);
 
   // Stock entry (creates lote + updates product + creates financial exit)
   const entradaEstoque = useCallback((entry: {
-    produtoId: number;
+    produtoId: string;
     fornecedorNome: string;
     quantidade: number;
     lote: string;
