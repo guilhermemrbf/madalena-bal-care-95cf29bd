@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { addToQueue } from './syncQueue';
 
 export interface Product {
-  id: number;
+  id: string;
   cod: string;
   nome: string;
   cat: string;
@@ -13,7 +13,7 @@ export interface Product {
 }
 
 export interface CartItem {
-  id: number;
+  id: string;
   cod: string;
   nome: string;
   preco: number;
@@ -23,7 +23,7 @@ export interface CartItem {
 }
 
 export interface Sale {
-  id: number;
+  id: string;
   data: string;
   itens: CartItem[];
   pgto: string;
@@ -31,13 +31,13 @@ export interface Sale {
   subtotal?: number;
   descontoGeral?: number;
   descontoGeralTipo?: '%' | 'Kz';
-  clienteId?: number | null;
+  clienteId?: string | null;
   clienteNome?: string;
 }
 
 export interface Lote {
-  id: number;
-  produtoId: number;
+  id: string;
+  produtoId: string;
   produtoNome: string;
   fornecedor: string;
   lote: string;
@@ -46,7 +46,7 @@ export interface Lote {
 }
 
 export interface Cliente {
-  id: number;
+  id: string;
   nome: string;
   telefone: string;
   documento: string;
@@ -59,7 +59,7 @@ export interface Cliente {
 }
 
 export interface Fornecedor {
-  id: number;
+  id: string;
   nome: string;
   nif: string;
   telefone: string;
@@ -72,7 +72,7 @@ export interface Fornecedor {
 }
 
 export interface Lancamento {
-  id: number;
+  id: string;
   data: string;
   descricao: string;
   tipo: 'entrada' | 'saida';
@@ -82,7 +82,7 @@ export interface Lancamento {
 }
 
 export interface Conta {
-  id: number;
+  id: string;
   fornecedor?: string;
   cliente?: string;
   descricao: string;

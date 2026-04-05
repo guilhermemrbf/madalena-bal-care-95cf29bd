@@ -8,8 +8,8 @@ interface Props {
   fornecedores: Fornecedor[];
   financeiro: Lancamento[];
   onAdd: (f: Omit<Fornecedor, 'id'>) => void;
-  onUpdate: (id: number, data: Partial<Fornecedor>) => void;
-  onDelete: (id: number) => void;
+  onUpdate: (id: string, data: Partial<Fornecedor>) => void;
+  onDelete: (id: string) => void;
 }
 
 const emptyForm = { nome: '', nif: '', telefone: '', email: '', contato: '', endereco: '', prazoEntrega: '3', observacoes: '' };
@@ -17,7 +17,7 @@ const emptyForm = { nome: '', nif: '', telefone: '', email: '', contato: '', end
 export default function FornecedoresPage({ fornecedores, financeiro, onAdd, onUpdate, onDelete }: Props) {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [historyForn, setHistoryForn] = useState<Fornecedor | null>(null);
   const { showToast } = useToastCustom();
@@ -45,7 +45,7 @@ export default function FornecedoresPage({ fornecedores, financeiro, onAdd, onUp
     setModalOpen(false);
   };
 
-  const del = (id: number) => {
+  const del = (id: string) => {
     if (!confirm('Excluir este fornecedor?')) return;
     onDelete(id);
     showToast('Fornecedor excluído.', 'info');

@@ -11,11 +11,11 @@ interface Props {
   fornecedores: Fornecedor[];
   onAddLancamento: (l: Omit<Lancamento, 'id'>) => void;
   onAddContaPagar: (c: Omit<Conta, 'id'>) => void;
-  onUpdateContaPagar: (id: number, data: Partial<Conta>) => void;
-  onDeleteContaPagar: (id: number) => void;
+  onUpdateContaPagar: (id: string, data: Partial<Conta>) => void;
+  onDeleteContaPagar: (id: string) => void;
   onAddContaReceber: (c: Omit<Conta, 'id'>) => void;
-  onUpdateContaReceber: (id: number, data: Partial<Conta>) => void;
-  onDeleteContaReceber: (id: number) => void;
+  onUpdateContaReceber: (id: string, data: Partial<Conta>) => void;
+  onDeleteContaReceber: (id: string) => void;
 }
 
 export default function FinanceiroPage(props: Props) {
@@ -199,7 +199,7 @@ export default function FinanceiroPage(props: Props) {
 
 function ContasTab({ contas, tipo, contasVencidas, onAdd, onPay, onDelete }: {
   contas: Conta[]; tipo: string; contasVencidas: Conta[];
-  onAdd: () => void; onPay: (id: number) => void; onDelete: (id: number) => void;
+  onAdd: () => void; onPay: (id: string) => void; onDelete: (id: string) => void;
 }) {
   const now = new Date();
   const getStatus = (c: Conta) => {
