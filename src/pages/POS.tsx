@@ -45,7 +45,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
   // Discounts
   const [descontoGeral, setDescontoGeral] = useState('');
   const [descontoGeralTipo, setDescontoGeralTipo] = useState<'%' | 'Kz'>('%');
-  const [editingDiscount, setEditingDiscount] = useState<number | null>(null);
+  const [editingDiscount, setEditingDiscount] = useState<string | null>(null);
   const [itemDesconto, setItemDesconto] = useState('');
   const [itemDescontoTipo, setItemDescontoTipo] = useState<'%' | 'Kz'>('%');
 
@@ -126,7 +126,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
 
   const handleScan = useCallback((code: string) => { findAndAddByCode(code); }, [findAndAddByCode]);
 
-  const changeQty = (id: number, d: number) => {
+  const changeQty = (id: string, d: number) => {
     setCart(prev => {
       const item = prev.find(i => i.id === id);
       if (!item) return prev;
@@ -138,7 +138,7 @@ export default function POS({ produtos, clientes, onSale }: Props) {
     });
   };
 
-  const applyItemDiscount = (id: number) => {
+  const applyItemDiscount = (id: string) => {
     const val = parseFloat(itemDesconto);
     if (isNaN(val) || val < 0) return;
     setCart(prev => prev.map(i => i.id === id ? { ...i, desconto: val, descontoTipo: itemDescontoTipo as '%' | 'Kz' } : i));

@@ -9,10 +9,10 @@ interface Props {
   produtos: Product[];
   fornecedores: Fornecedor[];
   onAdd: (p: Omit<Product, 'id'>) => void;
-  onUpdate: (id: number, data: Partial<Product>) => void;
-  onDelete: (id: number) => void;
+  onUpdate: (id: string, data: Partial<Product>) => void;
+  onDelete: (id: string) => void;
   onEntradaEstoque: (entry: {
-    produtoId: number; fornecedorNome: string; quantidade: number; lote: string;
+    produtoId: string; fornecedorNome: string; quantidade: number; lote: string;
     validade: string; custoPorUnidade: number; notaFiscal?: string; dataRecebimento: string; observacoes?: string;
   }) => void;
 }
@@ -24,7 +24,7 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [barcodeProduct, setBarcodeProduct] = useState<Product | null>(null);
   const [entryOpen, setEntryOpen] = useState(false);
@@ -65,14 +65,14 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
     setModalOpen(false);
   };
 
-  const del = (id: number) => {
+  const del = (id: string) => {
     if (!confirm('Excluir este produto permanentemente?')) return;
     onDelete(id);
     showToast('Produto excluído.', 'info');
   };
 
   const saveEntry = () => {
-    const produtoId = parseInt(entry.produtoId);
+    const produtoId = entry.produtoId;
     const quantidade = parseInt(entry.quantidade) || 0;
     const custoPorUnidade = parseFloat(entry.custoPorUnidade) || 0;
     if (!produtoId) {

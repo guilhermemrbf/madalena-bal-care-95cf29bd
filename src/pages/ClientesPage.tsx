@@ -8,8 +8,8 @@ interface Props {
   clientes: Cliente[];
   vendas: Sale[];
   onAdd: (c: Omit<Cliente, 'id'>) => void;
-  onUpdate: (id: number, data: Partial<Cliente>) => void;
-  onDelete: (id: number) => void;
+  onUpdate: (id: string, data: Partial<Cliente>) => void;
+  onDelete: (id: string) => void;
 }
 
 const emptyForm = { nome: '', telefone: '', documento: '', nascimento: '', endereco: '', observacoes: '' };
@@ -17,7 +17,7 @@ const emptyForm = { nome: '', telefone: '', documento: '', nascimento: '', ender
 export default function ClientesPage({ clientes, vendas, onAdd, onUpdate, onDelete }: Props) {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [historyClient, setHistoryClient] = useState<Cliente | null>(null);
   const { showToast } = useToastCustom();
@@ -45,7 +45,7 @@ export default function ClientesPage({ clientes, vendas, onAdd, onUpdate, onDele
     setModalOpen(false);
   };
 
-  const del = (id: number) => {
+  const del = (id: string) => {
     if (!confirm('Excluir este cliente?')) return;
     onDelete(id);
     showToast('Cliente excluído.', 'info');
