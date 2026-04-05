@@ -158,20 +158,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email, password,
           options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
         });
-        if (!error && data.user) {
-          await supabase.from('profiles').update({ cargo, avatar_initials: initials }).eq('user_id', data.user.id);
-          await cacheUserForOffline(email, password, data.user.id, profileData, 'admin');
-          markSetupComplete();
-          // Auto-login after signup
-          setUser({ id: data.user.id, email } as User);
-          setProfile(profileData);
-          setRole('admin');
-          localStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify({
-            userId: data.user.id, email, profile: profileData, role: 'admin',
-          }));
-          return { error: null };
-        }
         if (error) return { error: error.message };
+        if (data.user) {
+          // Wait a moment for the trigger to create the profile
+          await new Promise(r => setTimeout(r, 1000));
+          // Update profile with cargo and initials
+          await supabase.from('profiles').update({ cargo, avatar_initials: initials }).eq('user_id', data.user.id);
+          
+          // If session exists (auto-confirm enabled), we're logged in
+          if (data.session) {
+            setSession(data.session);
+            setUser(data.user);
+            setProfile(profileData);
+            setRole('admin');
+            await cacheUserForOffline(email, password, data.user.id, profileData, 'admin');
+            markSetupComplete();
+            localStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify({
+              userId: data.user.id, email, profile: profileData, role: 'admin',
+            }));
+            return { error: null };
+          }
+          
+          // No session — try signing in directly
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInError) return { error: signInError.message };
+          if (signInData.user) {
+            await cacheUserForOffline(email, password, signInData.user.id, profileData, 'admin');
+            markSetupComplete();
+            localStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify({
+              userId: signInData.user.id, email, profile: profileData, role: 'admin',
+            }));
+            return { error: null };
+          }
+        }
+        return { error: null };
       } catch {
         // Network error — fall through to offline
       }
