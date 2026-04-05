@@ -72,7 +72,7 @@ export default function Products({ produtos, fornecedores, onAdd, onUpdate, onDe
   };
 
   const saveEntry = () => {
-    const produtoId = parseInt(entry.produtoId);
+    const produtoId = entry.produtoId;
     const quantidade = parseInt(entry.quantidade) || 0;
     const custoPorUnidade = parseFloat(entry.custoPorUnidade) || 0;
     if (!produtoId) {
